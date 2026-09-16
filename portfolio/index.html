@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isan • Portfolio</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Using Inter as Aeonik Pro substitute per design guide -->
+</head>
+<body>
+  <!-- Marquee Banner -->
+  <div class="marquee">
+    <div class="marquee-content">
+      <span>🎨 UI/UX DESIGN • WEB DEVELOPMENT • AI CODING • SKADESMART • PORTFOLIO</span>
+    </div>
+  </div>
+
+  <!-- Top Navigation -->
+  <nav class="navbar">
+    <div class="logo-badge">S</div>
+    <div class="nav-links">
+      <a href="#work">Work</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <button class="cta-button filled">Hire Me</button>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="display-headline">HI,<br>I'M ISAN</h1>
+      <p class="tagline">High school student developer • AI-assisted coding enthusiast • SkadesMart founder</p>
+      <div class="hero-buttons">
+        <button class="cta-button outlined">View Projects</button>
+        <button class="cta-button outlined">Contact Me</button>
+      </div>
+    </div>
+    <div class="sticker-cluster">
+      <div class="sticker rocket">🚀</div>
+      <div class="sticker coin">🪙</div>
+      <div class="sticker wallet">👛</div>
+    </div>
+  </section>
+
+  <!-- Featured Work Section -->
+  <section id="work" class="section-gray">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Featured Work</h2>
+        <a href="#" class="ghost-link">See All Projects →</a>
+      </div>
+      <div class="projects-grid">
+        <!-- Project Card 1 -->
+        <div class="project-card electric-blue">
+          <div class="card-content">
+            <div class="sticker-icon">🛒</div>
+            <h3 class="card-title">SkadesMart</h3>
+            <p class="card-description">Internal marketplace app for my school. Built with Next.js and Express, handling orders and real-time chat.</p>
+            <div class="card-tags">
+              <span class="tag">Next.js</span>
+              <span class="tag">Express</span>
+              <span class="tag">SQLite</span>
+            </div>
+          </div>
+        </div>
+        <!-- Project Card 2 -->
+        <div class="project-card mint-pop">
+          <div class="card-content">
+            <div class="sticker-icon">🤖</div>
+            <h3 class="card-title">AI Assistant</h3>
+            <p class="card-description">Personal AI assistant using Hermes + Claude Code with a custom 9-provider router (Groq, OpenRouter, NVIDIA NIM).</p>
+            <div class="card-tags">
+              <span class="tag">Hermes</span>
+              <span class="tag">Python</span>
+              <span class="tag">AI</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="section-white">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-text">
+          <h2 class="subheading">About Me</h2>
+          <p class="body-lg">I'm a high school student at SMKN 1 Depok Sleman, passionate about web development and AI-assisted coding. I started coding through AI tools and now build full-stack apps like SkadesMart from scratch.</p>
+          <p class="body-lg">When I'm not coding, I enjoy exploring new AI tools and learning new skills through online resources.</p>
+          <div class="qr-download">
+            <div class="qr-placeholder">
+              <span class="qr-label">QR</span>
+            </div>
+            <div class="qr-text">DOWNLOAD RESUME</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="section-violet">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-info">
+          <h2 class="section-title">Let's Talk</h2>
+          <p class="body-lg">Got a project in mind? Let's collaborate!</p>
+          <div class="contact-details">
+            <div class="detail-item">
+              <span class="detail-label">Email</span>
+              <span class="detail-value">isan@example.com</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Location</span>
+              <span class="detail-value">Yogyakarta, Indonesia</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Availability</span>
+              <span class="detail-value">Open to opportunities</span>
+            </div>
+          </div>
+        </div>
+        <form class="contact-form">
+          <input type="text" placeholder="Your Name" class="form-input">
+          <input type="email" placeholder="Your Email" class="form-input">
+          <textarea placeholder="Your Message" class="form-textarea"></textarea>
+          <button type="submit" class="cta-button filled">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="logo-badge">S</div>
+      <p>© 2026 Isan. Built with AI assistance.</p>
+    </div>
+  </footer>
+</body>
+</html>

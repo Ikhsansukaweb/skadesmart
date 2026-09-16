@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Design system SkadesMart - lihat DESIGN.md / bagian 3 prompt redesign. */
+  --color-electric-blue: #5196fe;
+  --color-ember-orange: #f9754e;
+  --color-ink-black: #1b1d20;
+  --color-midnight: #101828;
+  --color-paper-white: #ffffff;
+  --color-parchment: #f2f1ec;
+  --color-sand: #e1dfd8;
+  --color-graphite: #27272a;
+  --color-steel: #6e6e6e;
+  --color-ash: #797876;
+  --color-fog: #a3a3a3;
+
+  --shadow-md: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  /* Font di-load via <link> biasa di layout.tsx (bukan next/font/google) supaya
+     `next build` tidak butuh akses internet ke fonts.googleapis.com. */
+  --font-inter: "Inter", sans-serif;
+  --font-accent-serif: "Source Serif 4", serif;
+
+  /* Alias lama dipertahankan supaya tidak ada halaman yang tertinggal
+     memakai family lama kalau ada referensi CSS var langsung. */
+  --font-oswald: var(--font-inter);
+  --font-saira: var(--font-inter);
+  --font-smooch: var(--font-inter);
+
+  /* ==========================================================================
+     VARIABEL TEMA (v3) - "Rombakan ala Tokopedia"
+
+     Ini BUKAN penggantian warna merek. Electric Blue (#5196fe) dan
+     Ember Orange (#f9754e) tetap jadi identitas SkadesMart, dan tetap
+     dipakai di tombol utama, tautan, dan penekanan.
+
+     Yang ditambahkan di sini adalah LAPISAN PERAN: komponen cukup memakai
+     `var(--bg-kartu)`, `var(--teks-utama)`, dst — tanpa perlu tahu warna
+     persisnya. Karena itu dark mode bisa dibuat hanya dengan menimpa
+     variabel ini di [data-tema="gelap"], TANPA menyentuh satu pun komponen.
+     ========================================================================== */
+
+  /* Latar */
+  --bg-halaman: #f2f1ec;   /* parchment - latar utama terang */
+  --bg-kartu: #ffffff;     /* paper - kartu, panel, modal */
+  --bg-sorot: #eef5ff;     /* electric-50 - baris terpilih, latar sorot */
+  --bg-lembut: #f7f6f3;    /* latar lebih lembut dari halaman (garis-garis tabel) */
+
+  /* Teks */
+  --teks-utama: #1b1d20;   /* ink - judul, isi penting */
+  --teks-kedua: #6e6e6e;   /* steel - keterangan, label */
+  --teks-samar: #a3a3a3;   /* fog - placeholder, nonaktif */
+  --teks-terang: #ffffff;  /* teks di atas latar gelap/tombol */
+
+  /* Garis & bayangan */
+  --garis: #e1dfd8;        /* sand - border kartu, pemisah */
+  --garis-tegas: #cfccc2;  /* border yang lebih terlihat */
+  --bayangan-kartu: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --bayangan-naik: 0 4px 16px rgba(0, 0, 0, 0.10);
+
+  /* Aksi (warna merek - TIDAK berubah) */
+  --aksi: #5196fe;         /* electric */
+  --aksi-hover: #3a7ce0;   /* electric-600 */
+  --aksi-lembut: #dce9ff;  /* electric-100 */
+  --aksen: #f9754e;        /* ember */
+  --aksen-hover: #e35f39;  /* ember-600 */
+  --aksen-lembut: #feeae4;
+
+  /* Keadaan (status) */
+  --naik: #16a34a;         /* hijau - selesai, stok aman, berhasil */
+  --naik-lembut: #dcfce7;
+  --turun: #dc2626;        /* merah - batal, stok habis, gagal */
+  --turun-lembut: #fee2e2;
+  --peringatan: #f59e0b;   /* kuning - stok menipis, perhatian */
+  --peringatan-lembut: #fef3c7;
+  --info: #5196fe;
+  --info-lembut: #dce9ff;
+}
+
+/* ==========================================================================
+   DARK MODE - "gelap"
+
+   Cara mengaktifkan: `document.documentElement.dataset.tema = "gelap"`.
+   Disimpan di localStorage["tema"] supaya pilihan pengguna diingat,
+   dan mengikuti prefers-color-scheme bila pengguna belum pernah memilih.
+
+   Prinsip: warna MEREK tetap sama secara rasa (biru & oranye), tetapi
+   versi terangnya dinaikkan supaya tetap terbaca di latar gelap
+   (mis. #5196fe -> #6ea8ff, kontras lebih tinggi di atas #101828).
+   ========================================================================== */
+[data-tema="gelap"] {
+  /* Latar */
+  --bg-halaman: #101828;   /* midnight */
+  --bg-kartu: #1b1d20;     /* ink */
+  --bg-sorot: #1e2939;
+  --bg-lembut: #171b24;
+
+  /* Teks */
+  --teks-utama: #f2f1ec;   /* parchment */
+  --teks-kedua: #a3a3a3;   /* fog */
+  --teks-samar: #6e6e6e;   /* steel */
+  --teks-terang: #101828;
+
+  /* Garis & bayangan */
+  --garis: #27272a;        /* graphite */
+  --garis-tegas: #3f3f46;
+  --bayangan-kartu: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --bayangan-naik: 0 4px 16px rgba(0, 0, 0, 0.5);
+
+  /* Aksi - versi lebih terang agar kontras di latar gelap */
+  --aksi: #6ea8ff;         /* electric-400 */
+  --aksi-hover: #8fbdff;   /* electric-300 */
+  --aksi-lembut: #1e3a5f;
+  --aksen: #f9754e;        /* ember - tetap, sudah cukup terang */
+  --aksen-hover: #ff8b68;
+  --aksen-lembut: #4a2620;
+
+  /* Keadaan */
+  --naik: #4ade80;
+  --naik-lembut: #14351f;
+  --turun: #f87171;
+  --turun-lembut: #3d1a1a;
+  --peringatan: #fbbf24;
+  --peringatan-lembut: #3d2f0a;
+  --info: #6ea8ff;
+  --info-lembut: #1e3a5f;
+
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  /* WAJIB pakai variabel tema, bukan `bg-paper` yang terkunci putih.
+     Ditemukan saat uji browser: `data-tema="gelap"` sudah terpasang dan
+     variabel sudah benar (#1b1d20), tetapi latar halaman TETAP PUTIH
+     karena class lama `bg-paper` menulis warna tetap, bukan var().
+     Akibatnya dark mode tampak "tidak bekerja" walau variabelnya benar. */
+  @apply bg-peran-halaman text-peran-utama font-body;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-heading tracking-heading;
+}
+
+/* Transisi halus saat tema berganti, supaya tidak berkedip kasar.
+   Dibatasi pada warna saja agar tidak mengganggu animasi lain. */
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Focus state jelas untuk aksesibilitas - Electric Blue (ganti dari brand-600 lama). */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-electric-blue);
+  outline-offset: 2px;
+}
+
+/* Primary Pill Button - fill Electric Blue, teks putih, radius pill. */
+.btn-primary {
+  @apply bg-peran-aksi text-peran-terang font-sub font-medium px-6 py-4 rounded-full
+         hover:bg-peran-aksi-hover transition-colors
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Ghost Pill Button - transparan, border Ink Black, teks Ink Black. */
+.btn-secondary {
+  @apply bg-transparent text-peran-utama border border-peran-garis-tegas font-sub font-medium px-6 py-4 rounded-full
+         hover:bg-peran-sorot transition-colors
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Ember CTA Button - dipakai selektif, maksimal 1x per halaman. */
+.btn-ember {
+  @apply bg-peran-aksen text-peran-terang font-sub font-medium px-6 py-4 rounded-full
+         hover:bg-peran-aksen-hover transition-colors
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Feature Card - putih, radius 24px, border sand tipis (bukan shadow tebal). */
+.card {
+  @apply bg-peran-kartu border border-peran-garis rounded-card;
+}
+
+/* Email/Text Input - border Fog, radius 12.8px, fokus Electric Blue. */
+.input-field {
+  @apply w-full border border-peran-garis-tegas rounded-input px-4 py-3
+         bg-peran-kartu text-peran-utama
+         focus:border-peran-aksi outline-none font-body placeholder:text-peran-kedua;
+}
+
+/* Tagline Badge - pill kecil Ink Black fill, dipakai di atas headline. */
+.badge-tagline {
+  @apply inline-flex items-center gap-1.5 bg-peran-utama text-peran-terang text-caption font-sub font-medium
+         px-4 py-1.5 rounded-full;
+}

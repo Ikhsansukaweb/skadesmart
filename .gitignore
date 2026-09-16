@@ -1,0 +1,119 @@
+# ============================================================================
+#  .gitignore - SkadesMart
+# ============================================================================
+#  PENTING: berkas ini WAJIB ada sebelum `git push` pertama.
+#  Tanpa ini, berkas kredensial (backend/.env) ikut ter-upload ke GitHub
+#  sehingga siapa pun bisa membaca kata sandi database, JWT_SECRET, dan
+#  kunci API layanan lain.
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# KREDENSIAL & RAHASIA - JANGAN PERNAH DI-COMMIT
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.env
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env.local
+frontend/.env.*.local
+!frontend/.env.local.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json
+
+# ---------------------------------------------------------------------------
+# DATABASE - berisi data pengguna asli, jangan di-upload
+# ---------------------------------------------------------------------------
+*.db
+*.db-shm
+*.db-wal
+*.db.bak*        # cadangan otomatis: skadesmart.db.bak-20260916-225944
+*.bak
+*.backup
+*.backup-*
+*.sqlite
+*.sqlite3
+*.backup-sqlite
+backend/data/*.db
+backend/data/*.db-*
+backend/data/*.db.*
+backend/data/cadangan/
+*.dump
+*.sql.gz
+
+# ---------------------------------------------------------------------------
+# HASIL BUILD
+# ---------------------------------------------------------------------------
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# ---------------------------------------------------------------------------
+# BERKAS PRIBADI / MESIN INI - tidak ada hubungannya dengan proyek
+# ---------------------------------------------------------------------------
+# Semua berkas "dotfile" rumah (shell/editor/IDE) - ini milik komputermu,
+# bukan milik proyek. Sengaja dimasukkan satu per satu DAN dengan pola
+# `.*` di bawah supaya tidak ada yang lolos.
+.bashrc
+.bash_profile
+.bash_history
+.profile
+.zshrc
+.zprofile
+.zlogin
+.zlogout
+.gitconfig
+.gitmodules
+.idea/
+.vscode/
+.claude/
+.mcp.json
+.ripgreprc
+.audit/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------------------------------------------------------------------
+# LOG & CACHE
+# ---------------------------------------------------------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pm2/
+.audit/
+.cache/
+coverage/
+.c8_output/
+
+# ---------------------------------------------------------------------------
+# UJI / SEMENTARA
+# ---------------------------------------------------------------------------
+/tmp/
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+
+# ---------------------------------------------------------------------------
+# APA YANG **HARUS** MASUK REPO (untuk kejelasan)
+# ---------------------------------------------------------------------------
+# - backend/.env.example       (daftar nama variabel, TANPA nilai)
+# - frontend/.env.local.example
+# - backend/src/db/schema.sql  (struktur tabel, bukan isinya)
+# - semua kode sumber di backend/src dan frontend/app, frontend/components

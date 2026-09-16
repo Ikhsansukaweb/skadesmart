@@ -1,0 +1,1670 @@
+{
+  "target": "https://api.skadesmart.web.id/api",
+  "waktu": "2026-09-16T18:41:48.612991",
+  "total_endpoint": 168,
+  "endpoint_lulus": 167,
+  "endpoint_gagal": 1,
+  "pengecekan": {
+    "ok": 309,
+    "gagal": 2
+  },
+  "hasil": [
+    {
+      "metode": "GET",
+      "endpoint": "/auth/me",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada objek user  [{\"id\":5,\"nisn\":\"10005\",\"full_name\":\"Fajar Ramadhan\",\"class_name\":\"10AK2\",\"role\":\"siswa\",\"profile_photo_url\":\"h...]",
+        "OK    nisn user cocok dengan yang login  [nisn=10005]",
+        "OK    password_hash TIDAK bocor"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/auth/ws-token",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    mengembalikan token  [panjang 184]",
+        "OK    token berbentuk JWT (3 segmen)"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/auth/notif",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    notif_enabled true dilaporkan  [{\"ok\":true,\"notif_enabled\":true}]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/auth/logout",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    server mengirim Set-Cookie penghapus sesi  [skadesmart_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT]",
+        "OK    Set-Cookie berbentuk penghapus (Expires 1970)  [skadesmart_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT]",
+        "OK    setelah logout, GET /auth/me -> 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/auth/login (NISN tak terdaftar)",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]",
+        "OK    ada kode NISN_NOT_FOUND  [{\"error\":\"NISN belum terdaftar. Silakan daftar akun baru dulu.\",\"code\":\"NISN_NOT_FOUND\"}]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/auth/login (password salah)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]",
+        "OK    tidak mengirim cookie sesi  [cookie=null]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/auth/login (validasi NISN)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400 untuk NISN tidak valid  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/account",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada objek user",
+        "OK    memuat kolom shop_open  [shop_open=1]",
+        "OK    memuat kolom banner_url",
+        "OK    password_hash tidak ikut terkirim"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/account",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    perubahan benar-benar tersimpan  [tersimpan=https://files.catbox.moe/uji-menyeluruh.png]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/account (field terlarang)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400 (skema strict menolak field asing)  [HTTP 400]",
+        "OK    nama TIDAK ikut berubah  [full_name=Fajar Ramadhan]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/account/password (password lama salah)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/account/password (ganti + pulihkan)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200 saat ganti password  [HTTP 200]",
+        "OK    login dengan password baru berhasil  [HTTP 200]",
+        "OK    password dikembalikan ke semula  [HTTP 200]",
+        "OK    login dengan password awal kembali berhasil  [HTTP 200]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/account/shop-status (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403 untuk siswa biasa  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/account/shop-status (kwu_brital)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200 untuk staf kwu_brital  [HTTP 200]",
+        "OK    respons melaporkan shop_open=false  [{\"message\":\"Status toko diperbarui.\",\"shop_open\":false}]",
+        "OK    toko dibuka kembali  [HTTP 200]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/account/history",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada array orders  [2 pesanan]",
+        "OK    pesanan memuat nama penjual (join users)  [seller_name=Dewi Anggraini]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/app/version",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200 (publik, tanpa login)  [HTTP 200]",
+        "OK    ada latest_version  [latest_version=1.0.0]",
+        "OK    ada min_supported_version  [min_supported_version=1.0.0]",
+        "OK    force_update bertipe boolean  [force_update=false]",
+        "OK    ada update_message  [update_message=Versi terbaru tersedia.]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/products",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada array products  [3 produk]",
+        "OK    ada page & limit  [page=1 limit=20]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/products?category=kwu_brital",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    semua hasil berkategori kwu_brital  [1 produk]",
+        "OK    menyertakan seller_shop_open"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/products?search=Ayam",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    semua nama hasil mengandung 'Ayam' (case-insensitive)  [Ayam Geprek ]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/products?limit=999 (validasi)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400 karena limit > 50  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/products (kategori siswa)",
+      "status_http": 201,
+      "lulus": true,
+      "catatan": [
+        "OK    status 201  [HTTP 201]",
+        "OK    mengembalikan id produk baru  [id=30]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/products (siswa, kategori kwu_brital)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403 (hanya staf KWU Brital)  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/products/:id",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada objek product",
+        "OK    nama produk sesuai  [name=UjiMenyeluruh-1789558885724]",
+        "OK    ada array images  [images=1]",
+        "OK    info penjual dilampirkan  [seller=Fajar Ramadhan]",
+        "OK    ada array ratings"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/products/999999 (tidak ada)",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/products/mine (siswa)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    produk yang baru dibuat muncul di /mine  [1 produk]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/products/mine (kwu_brital)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    staf KWU Brital melihat produk kategori kwu_brital milik unit  [1 produk terlihat]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/products/:id (pemilik)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    harga benar-benar berubah jadi 2500  [price=2500]",
+        "OK    stok benar-benar berubah jadi 9  [stock=9]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/products/:id (bukan pemilik)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/products/:id (bukan pemilik)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/products/:id (pemilik)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    produk tidak lagi bisa diakses (soft delete) -> 404  [HTTP 404]",
+        "OK    tidak lagi muncul di daftar publik"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/cart",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada array items  [0 item]",
+        "OK    ada total  [total=0]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/cart",
+      "status_http": 201,
+      "lulus": true,
+      "catatan": [
+        "OK    status 201  [HTTP 201]",
+        "OK    item masuk ke keranjang  [1 item]",
+        "OK    quantity = 2  [qty=2]",
+        "OK    total dihitung (2 x 5000 = 10000)  [total=10000]",
+        "OK    catatan tersimpan  [note=pedas level 3]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/cart (produk sama, akumulasi)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    quantity terakumulasi jadi 5  [qty=5]",
+        "OK    total ikut menyesuaikan (5 x 5000 = 25000)  [total=25000]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/cart/:productId",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    quantity berubah jadi 4  [qty=4]",
+        "OK    catatan berubah  [note=tanpa sambal]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/cart/:productId (tidak ada)",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/cart/:productId",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    keranjang kembali kosong  [0 item]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/cart (produk kategori siswa)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400 (keranjang khusus KWU Brital)  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/cart (kosongkan semua)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    keranjang benar-benar kosong  [0 item]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/orders/brital/direct",
+      "status_http": 201,
+      "lulus": true,
+      "catatan": [
+        "OK    status 201  [HTTP 201]",
+        "OK    total = 2 x 8000  [total=16000]",
+        "OK    status awal 'baru'  [status=baru]",
+        "OK    stok produk berkurang (30 -> 28)  [stock=28]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/orders/brital/checkout",
+      "status_http": 201,
+      "lulus": true,
+      "catatan": [
+        "OK    status 201  [HTTP 201]",
+        "OK    total = 1 x 8000  [total=8000]",
+        "OK    keranjang dikosongkan setelah checkout"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/orders/brital/checkout (keranjang kosong)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/orders/brital/direct (produk tak ada)",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/orders/mine",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    pesanan yang baru dibuat muncul  [4 pesanan]",
+        "OK    pesanan brital memuat daftar items  [1 item]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/orders/:id/brital-status (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/orders/:id/brital-status (kwu_brital)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    respons melaporkan status baru  [{\"message\":\"Status pesanan diperbarui.\",\"status\":\"diproses\"}]",
+        "OK    status benar-benar berubah di database  [status=diproses]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/orders/incoming (kwu_brital)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    semua pesanan berunit kwu_brital  [5 pesanan]",
+        "OK    memuat nama & NISN pembeli"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/orders/incoming (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/orders/stats",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    selalu melaporkan tepat 7 hari  [7 hari]",
+        "OK    tiap hari punya day/count/revenue"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/orders/laundry",
+      "status_http": 201,
+      "lulus": true,
+      "catatan": [
+        "OK    status 201  [HTTP 201]",
+        "OK    status awal langsung 'dicuci'  [status=dicuci]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/orders/laundry (NISN tak terdaftar)",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/orders/laundry (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/orders/:id/laundry-status",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    respons melaporkan status baru  [{\"message\":\"Status laundry diperbarui.\",\"status\":\"bisa_diambil\"}]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/orders/:id/payment",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    payment_status berubah jadi sudah_bayar  [payment_status=sudah_bayar]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/orders/siswa/complete",
+      "status_http": 201,
+      "lulus": true,
+      "catatan": [
+        "OK    status 201  [HTTP 201]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/orders/siswa/complete (diri sendiri)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/orders/siswa/complete (produk bukan miliknya)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/orders/:id (unit berbeda)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403 (bukan milik unitnya)  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/orders/:id (pesanan masih aktif)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400 (hanya selesai/dibatalkan)  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/orders/:id (selesai, unit pemilik)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    pesanan hilang dari riwayat"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/ratings (pesanan belum selesai)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/ratings (bukan pemilik pesanan)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/ratings",
+      "status_http": 201,
+      "lulus": true,
+      "catatan": [
+        "OK    status 201  [HTTP 201]",
+        "OK    mengembalikan id rating  [id=10]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/ratings (pesanan sama dua kali)",
+      "status_http": 409,
+      "lulus": true,
+      "catatan": [
+        "OK    status 409 (satu pesanan satu rating)  [HTTP 409]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/ratings (pesanan tak ada)",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/ratings/product/:productId",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200 (publik)  [HTTP 200]",
+        "OK    rating yang baru dibuat muncul di produk  [1 ulasan]",
+        "OK    ulasan memuat nama pembeli"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/ratings/seller/:sellerId",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200 (publik)  [HTTP 200]",
+        "OK    ada array ratings  [2 ulasan penjual]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/products/:id (rata-rata rating)",
+      "status_http": 200,
+      "lulus": false,
+      "catatan": [
+        "OK    detail memuat ulasan (ratings[] terisi)  [1 ulasan]",
+        "GAGAL avg_rating terisi setelah ada ulasan (konsisten dgn daftar)  [avg_rating=null (di /products daftar=5)]",
+        "GAGAL rating_count minimal 1  [rating_count=null (di /products daftar=1)]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/ratings/product/999999",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    daftar kosong"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats (unit_slug)",
+      "status_http": 201,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200/201  [HTTP 201]",
+        "OK    ada objek chat",
+        "OK    chat terhubung ke unit kwu_brital  [unit=kwu_brital]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats (unit sama, harus idempoten)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    mengembalikan chat id yang sama  [id=d47a0388-ec2f-49e6-9a57-09de5bfa1846]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats (seller_id 1:1)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200/201  [HTTP 200]",
+        "OK    chat 1:1 punya seller_id, tanpa unit_slug  [seller=6 unit=null]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats (diri sendiri)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats (tanpa seller_id/unit_slug)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/chats/:id",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada objek chat",
+        "OK    ada objek other",
+        "OK    lawan bicara chat unit ditampilkan sebagai nama unit  [other={\"id\":null,\"full_name\":\"Ayam Geprek Brital\",\"profile_photo_u...]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/chats/:id (tidak ada)",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/chats/:id (bukan partisipan)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/chats/:id/mute",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    muted_by_buyer terset 1 di database  [muted_by_buyer=1]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/chats/:id/mute (tipe salah)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "PATCH",
+      "endpoint": "/chats/:id/dibaca",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    melaporkan jumlah pesan yang ditandai  [{\"ok\":true,\"ditandai\":0}]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/chats/:id/pesan",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada array pesan  [1 pesan]",
+        "OK    setiap pesan memuat isi teks",
+        "OK    ada jumlahBelumDibaca  [jumlahBelumDibaca=0]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/chats/:id/pesan?batas=1",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    jumlah pesan dibatasi menjadi 1  [1 pesan]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/chats/:id/pesan (bukan partisipan)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/chats/belum-dibaca",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    mengembalikan angka total  [total=2]",
+        "OK    tidak salah tertangkap sebagai /chats/:id  [{\"total\":2}]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/chats/push/kunci",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200 (VAPID terpasang)  [HTTP 200]",
+        "OK    kunci publik berupa string base64url  [panjang=87]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats/push/langganan",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    respons ok:true  [{\"ok\":true}]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats/push/langganan (endpoint tidak sah)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/chats/push/langganan",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    respons ok:true  [{\"ok\":true}]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats/rating",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    mengembalikan chat_id  [chat_id=b55baacf-d64b-4c5e-b105-fc7c69eb737e]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats/rating (atas nama orang lain)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats/rating (diri sendiri)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/chats/rating (tujuan tak ada)",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/chats/:id (bukan partisipan)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    prasyarat: chat masih ada sebelum diuji  [HTTP 200]",
+        "OK    prasyarat: siswaC memang bukan peserta  [GET oleh siswaC -> HTTP 403]",
+        "OK    status 403  [HTTP 403]",
+        "OK    chat TIDAK ikut terhapus oleh bukan partisipan  [HTTP 200]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/chats/:id (partisipan)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    chat benar-benar terhapus -> 404  [HTTP 404]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/users/staff/cs",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    mengembalikan satu akun CS  [cs=Sari Wulandari]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/users/staff/cs (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/users/search (kwu_laundry)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    menemukan pengguna bernama mengandung 'Andi'  [Andi Pratama]",
+        "OK    hasil menyertakan NISN untuk staf"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/users/search (query < 2 huruf)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    daftar kosong untuk query terlalu pendek"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/users/search (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/users/:id",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada objek user  [nama=Andi Pratama]",
+        "OK    NISN TIDAK dibocorkan di profil publik",
+        "OK    ada daftar produk penjual  [0 produk]",
+        "OK    ada ringkasan rating (avg_rating & rating_count)  [avg=5 count=1]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/users/999999 (tidak ada)",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/users/abc (bukan angka)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/users/:id (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/kwu",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200 (publik)  [HTTP 200]",
+        "OK    ada array units  [2 unit]",
+        "OK    unit kwu_brital & kwu_laundry ada"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/kwu (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/kwu (slug duplikat)",
+      "status_http": 500,
+      "lulus": true,
+      "catatan": [
+        "OK    tidak membuat unit duplikat (bukan 201)  [HTTP 500]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/kwu/:id",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    price_info benar-benar tersimpan di database  [price_info=Rp7000/kg (uji menyeluruh)]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/kwu/:id (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/kwu/:id",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    unit hilang dari daftar aktif setelah dinonaktifkan"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/kwu/:id (pemulihan data asli)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    unit kwu_laundry aktif kembali  [is_active=1]",
+        "OK    nama unit kembali seperti semula  [name=Laundry]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/banners",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200 (publik)  [HTTP 200]",
+        "OK    hanya banner aktif yang dikirim  [1 banner]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/banners/all (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/banners/all (admin)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada array banners  [1 banner]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/banners",
+      "status_http": 201,
+      "lulus": true,
+      "catatan": [
+        "OK    status 201  [HTTP 201]",
+        "OK    mengembalikan id banner  [id=10]",
+        "OK    banner baru langsung tampil di endpoint publik"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/banners (image_url tidak sah)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/banners (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/banners/:id",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    banner nonaktif hilang dari daftar publik",
+        "OK    banner nonaktif tetap terlihat admin di /all"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/banners/:id (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/banners/:id",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    banner benar-benar terhapus"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/banners/:id (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/admin/users (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/admin/transactions (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/admin/dashboard/summary (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/admin/users (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/admin/users",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada array users  [10 pengguna]",
+        "OK    memuat NISN untuk admin"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/admin/dashboard/summary",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada angka totalUsers  [totalUsers=10]",
+        "OK    ada angka totalProducts  [totalProducts=3]",
+        "OK    ada angka totalOrders  [totalOrders=8]",
+        "OK    ada angka pendingOrders  [pendingOrders=0]",
+        "OK    ada angka revenue  [revenue=85264]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/admin/transactions",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada array orders  [8 transaksi]",
+        "OK    memuat nama pembeli & penjual"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/admin/users/:id/role",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    role benar-benar berubah jadi kwu_brital  [role=kwu_brital]",
+        "OK    role dikembalikan ke semula (siswa)  [role=siswa]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/admin/users/:id/role (role tidak sah)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/admin/app-config",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    latest_version baru benar-benar terbaca /app/version  [latest_version=9.9.9-uji]",
+        "OK    latest_version dikembalikan ke 1.0.0  [latest_version=1.0.0]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/admin/app-config (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/admin/users/:id (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/admin/users/999999 (tidak ada)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200 atau 404 (tidak crash)  [HTTP 200]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/cs/tickets (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/cs/users (role siswa)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/cs/users",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada array users  [10 pengguna]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/cs/tickets",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    ada array tickets  [0 tiket]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/cs/tickets/:id (belum ada tiket di DB)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    endpoint merespons wajar (200/404)  [HTTP 200]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/cs/tickets/:id (status tidak sah)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/cs/chat/:id/moderate",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    respons menggemakan chatId & is_hidden  [{\"message\":\"Status moderasi chat dicatat.\",\"chatId\":\"uji-id\",\"is_hidden\":true}]"
+      ]
+    },
+    {
+      "metode": "PUT",
+      "endpoint": "/cs/rating/:id/moderate (sembunyikan)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    rating tersembunyi hilang dari daftar publik  [rating_id=11]",
+        "OK    bisa dikembalikan (is_hidden=false)  [HTTP 200]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/cs/users/:id (akun admin)",
+      "status_http": 403,
+      "lulus": true,
+      "catatan": [
+        "OK    status 403 (admin dilindungi)  [HTTP 403]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/cs/users/:id (tidak ada)",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]"
+      ]
+    },
+    {
+      "metode": "DELETE",
+      "endpoint": "/cs/users/:id (jalur sukses, tidak dijalankan)",
+      "status_http": null,
+      "lulus": true,
+      "catatan": [
+        "OK    dilewati sengaja agar tidak menghapus akun siswa asli  [dijaga agar data nyata utuh]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/upload/image (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/upload/image (tanpa berkas)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/upload/image (tipe .txt)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400 (hanya JPEG/PNG/WebP)  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/upload/image (PNG sah)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    mengembalikan URL gambar  [https://files.catbox.moe/k213rh.png]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/upload/images (2 berkas)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    status 200  [HTTP 200]",
+        "OK    mengembalikan 2 URL  [2 url]"
+      ]
+    },
+    {
+      "metode": "POST",
+      "endpoint": "/upload/images (tanpa berkas)",
+      "status_http": 400,
+      "lulus": true,
+      "catatan": [
+        "OK    status 400  [HTTP 400]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/account (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/account/history (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/cart (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/orders/mine (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/orders/incoming (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/orders/stats (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/products/mine (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/chats (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/chats/belum-dibaca (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/users/staff/cs (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/admin/users (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/admin/transactions (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/admin/dashboard/summary (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/cs/tickets (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/cs/users (tanpa sesi)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/account (token palsu)",
+      "status_http": 401,
+      "lulus": true,
+      "catatan": [
+        "OK    status 401  [HTTP 401]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/tidak-ada-endpoint-ini",
+      "status_http": 404,
+      "lulus": true,
+      "catatan": [
+        "OK    status 404  [HTTP 404]",
+        "OK    respons JSON berisi error  [{\"error\":\"Endpoint tidak ditemukan.\"}]"
+      ]
+    },
+    {
+      "metode": "GET",
+      "endpoint": "/app/version (header keamanan)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    ada X-Content-Type-Options: nosniff  [nilai=nosniff]",
+        "OK    ada Content-Security-Policy  [csp=default-src 'self';script-src 'self';style-src 'se...]",
+        "OK    X-Frame-Options DENY  [nilai=DENY]"
+      ]
+    },
+    {
+      "metode": "OPTIONS/CORS",
+      "endpoint": "/app/version (origin asing)",
+      "status_http": 200,
+      "lulus": true,
+      "catatan": [
+        "OK    origin asing TIDAK diizinkan di header CORS  [acao=null]"
+      ]
+    }
+  ]
+}

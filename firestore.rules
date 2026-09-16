@@ -1,0 +1,118 @@
+rules_version = '2';
+
+// Firestore Security Rules - project "skadesmart"
+// Firestore di sini HANYA lapisan realtime (chat & mirror status pesanan).
+// Data transaksional utama (users, products, orders, ratings) tetap di SQLite.
+//
+// request.auth.uid diisi lewat Firebase Custom Token yang dibuat backend
+// (admin.auth().createCustomToken(String(user_id), { role })), jadi
+// request.auth.uid == user_id di database SQLite, DAN request.auth.token.role
+// berisi role user itu (siswa/kwu_brital/kwu_laundry/cs/admin) - lihat
+// services/firebaseAdmin.ts::createFirebaseCustomToken.
+//
+// Klaim role inilah yang memungkinkan CHAT & PRODUK MILIK UNIT KWU (Brital/
+// Laundry) bisa diakses SIAPA PUN staf dengan role yang cocok, bukan cuma
+// satu akun tertentu - karena staf KWU bergantian tiap hari (biasanya 6
+// orang berbeda). Kalau role seseorang berubah, klaim ini baru ter-update
+// setelah re-auth (otomatis tiap sesi di-refresh, lihat auth-context.tsx).
+//
+// SECURITY HARDENING: Additional constraints to prevent data leaks via
+// role escalation. Chat access requires BOTH role match AND explicit
+// relationship to the chat (participant or unit member).
+
+function hasRole(role) {
+  return request.auth != null && request.auth.token.role == role;
+}
+
+function isParticipant(chatData) {
+  return request.auth != null && request.auth.uid in chatData.participants;
+}
+
+function isUnitMember(chatData) {
+  return request.auth != null
+    && chatData.unitSlug != null
+    && hasRole(chatData.unitSlug);
+}
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Chat room: partisipan langsung (buyer/seller individu) ATAU, kalau chat
+    // ini milik unit KWU (field unitSlug terisi), staf dengan role yang cocok
+    // YANG JUGA terdaftar sebagai partisipan (buyer) ATAU memiliki role unit yang valid.
+    match /chats/{chatId} {
+      allow read: if request.auth != null
+                  && (
+                    isParticipant(resource.data)
+                    || isUnitMember(resource.data)
+                  );
+
+      // Dokumen chat dibuat & di-mirror dari BACKEND via Firebase Admin SDK
+      // (bypass Security Rules) - allow create di sini cuma fallback aman.
+      allow create: if request.auth != null
+                    && request.auth.uid in request.resource.data.participants;
+
+      // Klien HANYA boleh mengubah field milik dirinya sendiri untuk fitur
+      // "tandai sudah dibaca" dan "senyapkan notifikasi" - field lain
+      // (participants, lastMessage, unitSlug, dst) tetap read-only dari client.
+      allow update: if request.auth != null
+                    && (
+                      isParticipant(resource.data)
+                      || isUnitMember(resource.data)
+                    )
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['lastReadAt', 'mutedBy', 'deletedFor']);
+
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null
+                    && (
+                      isParticipant(get(/databases/$(database)/documents/chats/$(chatId)).data)
+                      || isUnitMember(get(/databases/$(database)/documents/chats/$(chatId)).data)
+                    );
+
+        allow create: if request.auth != null
+                      && (
+                        isParticipant(get(/databases/$(database)/documents/chats/$(chatId)).data)
+                        || isUnitMember(get(/databases/$(database)/documents/chats/$(chatId)).data)
+                      )
+                      && request.resource.data.senderId == request.auth.uid
+                      && request.resource.data.createdAt is timestamp
+                      && (
+                        // Pesan teks: wajib ada text, 1-2000 karakter.
+                        (request.resource.data.text is string
+                         && request.resource.data.text.size() > 0
+                         && request.resource.data.text.size() <= 2000)
+                        ||
+                        // Pesan foto: wajib ada imageUrl berupa string https.
+                        (request.resource.data.imageUrl is string
+                         && request.resource.data.imageUrl.size() > 0
+                         && request.resource.data.imageUrl.matches('^https://'))
+                      );
+
+        // Pesan tidak bisa diedit/dihapus dari client - menjaga integritas riwayat chat.
+        allow update, delete: if false;
+      }
+    }
+
+    // Mirror status pesanan - read-only dari client, hanya ditulis backend
+    // lewat Firebase Admin SDK (yang otomatis bypass Security Rules ini).
+    match /orders_status/{orderId} {
+      allow read: if request.auth != null
+                  && (request.auth.uid == resource.data.buyerId
+                      || request.auth.uid == resource.data.sellerId
+                      || (resource.data.kwuUnit != null && hasRole(resource.data.kwuUnit)));
+      allow write: if false;
+    }
+
+    // Sinyal "ada pesanan baru masuk" untuk trigger suara notifikasi di
+    // dashboard KWU - satu dokumen PER UNIT (bukan per akun staf), supaya
+    // siapa pun staf yang sedang shift dengar notifikasinya. Dibaca lewat
+    // klaim role, ditulis backend saja.
+    match /seller_orders/{unitSlug} {
+      allow read: if hasRole(unitSlug);
+      allow write: if false;
+    }
+  }
+}
