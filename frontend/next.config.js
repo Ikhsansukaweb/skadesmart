@@ -63,7 +63,7 @@ const nextConfig = {
               "default-src 'self'",
               `script-src ${scriptSrc}`,
               `style-src ${styleSrc}`,
-              "img-src 'self' data: https://files.catbox.moe https://n.uguu.se https://tmpfiles.org blob:",
+              "img-src 'self' data: https://files.catbox.moe https://n.uguu.se https://tmpfiles.org https://ui-avatars.com https://*.googleusercontent.com blob:",
               `font-src ${fontSrc}`,
               `connect-src ${connectSrc}`,
               "frame-ancestors 'none'",

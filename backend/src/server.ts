@@ -105,7 +105,16 @@ app.use(
         "default-src": ["'self'"],
         "script-src": ["'self'"],
         "style-src": ["'self'"],
-        "img-src": ["'self'", "data:", "https://files.catbox.moe", "https://n.uguu.se", "https://tmpfiles.org", "blob:"],
+        "img-src": [
+          "'self'",
+          "data:",
+          "https://files.catbox.moe",
+          "https://n.uguu.se",
+          "https://tmpfiles.org",
+          "https://ui-avatars.com",
+          "https://*.googleusercontent.com",
+          "blob:",
+        ],
         "font-src": ["'self'", "data:"],
         // Domain Firebase dihapus - real-time sekarang lewat WebSocket ke
         // server sendiri (wss://api.skadesmart.web.id) dan notifikasi lewat
