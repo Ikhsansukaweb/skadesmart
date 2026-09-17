@@ -27,6 +27,9 @@ const nextConfig = {
     unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "files.catbox.moe" },
+      // Cadangan unggah: dipakai otomatis kalau Catbox sedang turun (502).
+      { protocol: "https", hostname: "n.uguu.se" },
+      { protocol: "https", hostname: "tmpfiles.org" },
     ],
   },
   async headers() {
@@ -60,7 +63,7 @@ const nextConfig = {
               "default-src 'self'",
               `script-src ${scriptSrc}`,
               `style-src ${styleSrc}`,
-              "img-src 'self' data: https://files.catbox.moe blob:",
+              "img-src 'self' data: https://files.catbox.moe https://n.uguu.se https://tmpfiles.org blob:",
               `font-src ${fontSrc}`,
               `connect-src ${connectSrc}`,
               "frame-ancestors 'none'",

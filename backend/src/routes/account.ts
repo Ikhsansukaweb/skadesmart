@@ -58,13 +58,13 @@ router.put("/password", authMiddleware, strictLimiter, validate(changePasswordSc
   res.json({ message: "Password berhasil diganti. Silakan login ulang." });
 });
 
-// Buka/tutup toko - khusus staf kwu_brital & kwu_laundry. Saat tutup, produk
-// unit itu tidak bisa dipesan (dicegah di routes/cart.ts & routes/orders.ts)
+// Buka/tutup toko - SEMUA role yang bisa jualan: staf kwu_brital, kwu_laundry,
+// dan siswa biasa (jualan minuman/makanan/jasa/barang). Saat tutup, produk
+// seller itu tidak bisa dipesan (dicegah di routes/cart.ts & routes/orders.ts)
 // dan ditandai "Tutup" di marketplace.
 router.put(
   "/shop-status",
   authMiddleware,
-  requireRole(["kwu_brital", "kwu_laundry", "admin"]),
   defaultLimiter,
   validate(shopStatusSchema),
   (req, res) => {

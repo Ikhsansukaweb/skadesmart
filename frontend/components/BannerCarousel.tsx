@@ -58,7 +58,8 @@ export default function BannerCarousel({ userName }: { userName?: string }) {
         <div className="absolute -right-10 -top-10 w-56 h-56 rounded-full bg-electric/25 blur-3xl pointer-events-none" aria-hidden="true" />
         <div className="absolute -right-6 bottom-0 w-48 h-48 rounded-full bg-ember/20 blur-3xl pointer-events-none" aria-hidden="true" />
         <div className="max-w-page mx-auto w-full px-4 sm:px-6 relative space-y-2 sm:space-y-3">
-          <span className="badge-tagline bg-white/10 text-white">Halo, {userName || "Siswa"}</span>
+          {/* Label "Halo, {nama}" dihapus atas permintaan - banner langsung
+              menampilkan judulnya saja. */}
           <h1 className="text-heading-sm sm:text-heading font-heading font-semibold max-w-3xl line-clamp-2">
           Platform Dimana Seluruh Siswa<span className="underline decoration-2 underline-offset-2"> Dengan Mudah Berwirausaha</span>
           </h1>

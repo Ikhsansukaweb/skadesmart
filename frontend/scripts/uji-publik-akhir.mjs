@@ -11,7 +11,7 @@ const WEB = "https://skadesmart.web.id";
 const tidur = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const HALAMAN = [
-  "/home", "/marketplace", "/cart", "/chat", "/orders/status",
+  "/home", "/marketplace", "/cart", "/chat", "/account",
   "/product/mine", "/product/add", "/account",
 ];
 

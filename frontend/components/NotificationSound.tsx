@@ -116,8 +116,8 @@ export default function NotificationSound() {
       // ------------------------------------------------ Status pesanan
       if (k.type === "order:status") {
         playNotificationSound();
-        notifLokal("Status pesanan", k.teks, "/orders/status");
-        tampilkan("Status pesanan", k.teks, "/orders/status", "pesanan");
+        notifLokal("Status pesanan", k.teks, "/account");
+        tampilkan("Status pesanan", k.teks, "/account", "pesanan");
         return;
       }
     };

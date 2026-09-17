@@ -45,6 +45,7 @@ export const KATEGORI = [
   { id: "minuman", label: "Minuman", grup: "Jualan Siswa" },
   { id: "makanan", label: "Makanan", grup: "Jualan Siswa" },
   { id: "jasa", label: "Jasa", grup: "Jualan Siswa" },
+  { id: "barang", label: "Barang", grup: "Jualan Siswa" },
 ] as const;
 
 /** Pilihan lokasi - diisi dari kantin/tempat di sekolah. */

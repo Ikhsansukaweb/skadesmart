@@ -33,6 +33,21 @@ const KATEGORI_UNIT: Record<string, string> = {
   kwu_laundry: "kwu_laundry",
 };
 
+// Nama tampilan unit KWU. Produk KWU SELALU tampil atas nama unit, bukan atas
+// nama staf yang kebetulan membuatnya — staf bergantian tiap shift.
+const NAMA_UNIT: Record<string, string> = {
+  kwu_brital: "Ayam Geprek Brital",
+  kwu_laundry: "KWU Laundry",
+};
+
+/** Nama penjual yang ditampilkan: nama unit untuk produk KWU, kalau bukan
+ *  produk KWU pakai nama pribadi penjual. */
+function namaPenjual(product: any): string {
+  const unitRole = KATEGORI_UNIT[product.category];
+  if (unitRole) return NAMA_UNIT[unitRole] || unitRole;
+  return product.seller_name || "Penjual";
+}
+
 function canManageProduct(product: any, userId: number, role: string): boolean {
   if (product.seller_id === userId) return true;
   if (role === "admin") return true;
@@ -50,7 +65,7 @@ function canManageProduct(product: any, userId: number, role: string): boolean {
 //   harga_min   : harga terendah
 //   harga_max   : harga tertinggi
 //   rating_min  : rating minimum (1-5)
-//   jenis_toko  : "resmi" (brital/laundry) | "siswa" (minuman/makanan/jasa)
+//   jenis_toko  : "resmi" (brital/laundry) | "siswa" (minuman/makanan/jasa/barang)
 //   tersedia    : "1" = hanya yang stoknya > 0
 //   urut        : sesuai | terlaris | ulasan | terbaru | harga_naik | harga_turun
 //   page, limit : halaman
@@ -128,7 +143,7 @@ router.get("/", readLimiter, validate(listProductsQuerySchema, "query"), (req, r
   if (jenis_toko === "resmi") {
     where += " AND p.category IN ('brital','laundry','kwu_brital','kwu_laundry')";
   } else if (jenis_toko === "siswa") {
-    where += " AND p.category IN ('minuman','makanan','jasa','siswa')";
+    where += " AND p.category IN ('minuman','makanan','jasa','barang','siswa')";
   }
 
   if (tersedia === "1" || tersedia === "true") {
@@ -175,6 +190,13 @@ router.get("/", readLimiter, validate(listProductsQuerySchema, "query"), (req, r
     const batas = Number(rating_min);
     hasil = rows.filter((r: any) => (r.avg_rating ?? 0) >= batas);
   }
+
+  // Produk KWU tampil atas nama UNIT, bukan nama staf yang membuatnya.
+  hasil = hasil.map((r: any) => ({
+    ...r,
+    seller_name: namaPenjual(r),
+    unit_slug: KATEGORI_UNIT[r.category] || null,
+  }));
 
   const result = { products: hasil, page, limit };
   cache.set(cacheKey, result, 45);
@@ -313,32 +335,73 @@ router.get("/:id", readLimiter, (req, res) => {
   const info_penting = product.info_penting || null;
 
   // ---- Profil toko ----
-  const toko: any = db
-    .prepare(
-      `SELECT tp.nama_toko, tp.deskripsi, tp.foto_url, tp.jam_buka, tp.lokasi
-       FROM toko_profil tp WHERE tp.seller_id = ?`
-    )
-    .get(product.seller_id) || {};
+  // Untuk produk UNIT KWU, identitas penjualnya adalah UNIT — bukan profil
+  // toko pribadi staf yang kebetulan membuat produk. Tanpa ini, halaman detail
+  // menampilkan nama toko pribadi (mis. "Toko Andi") padahal produknya milik
+  // unit KWU Brital.
+  const unitSlug = KATEGORI_UNIT[product.category] || null;
+  let toko: any = {};
+  if (unitSlug) {
+    toko = {
+      nama_toko: NAMA_UNIT[unitSlug] || unitSlug,
+      deskripsi: "Unit resmi KWU SMKN 1 Depok Sleman.",
+      foto_url: null,
+      jam_buka: null,
+      lokasi: "SMKN 1 Depok Sleman",
+    };
+  } else {
+    toko = db
+      .prepare(
+        `SELECT tp.nama_toko, tp.deskripsi, tp.foto_url, tp.jam_buka, tp.lokasi
+         FROM toko_profil tp WHERE tp.seller_id = ?`
+      )
+      .get(product.seller_id) || {};
+  }
 
-  toko.jumlah_produk = (
-    db
-      .prepare("SELECT COUNT(*) AS n FROM products WHERE seller_id = ? AND is_active = 1")
-      .get(product.seller_id) as any
-  ).n;
+  // Statistik toko. Untuk produk unit KWU, hitung seluruh produk/ulasan UNIT
+  // (semua staf yang pernah membuat), bukan hanya milik satu staf.
+  const kategoriUnit = unitSlug
+    ? unitSlug === "kwu_brital"
+      ? ["brital", "kwu_brital"]
+      : ["laundry", "kwu_laundry"]
+    : null;
+
+  if (kategoriUnit) {
+    const tanda = kategoriUnit.map(() => "?").join(",");
+    toko.jumlah_produk = (
+      db
+        .prepare(`SELECT COUNT(*) AS n FROM products WHERE category IN (${tanda}) AND is_active = 1`)
+        .get(...kategoriUnit) as any
+    ).n;
+
+    toko.rating_toko = db
+      .prepare(
+        `SELECT ROUND(AVG(r.score),1) AS rata, COUNT(*) AS n
+         FROM ratings r JOIN products p ON p.id = r.product_id
+         WHERE p.category IN (${tanda}) AND r.is_hidden = 0`
+      )
+      .get(...kategoriUnit) as any;
+  } else {
+    toko.jumlah_produk = (
+      db
+        .prepare("SELECT COUNT(*) AS n FROM products WHERE seller_id = ? AND is_active = 1")
+        .get(product.seller_id) as any
+    ).n;
+
+    toko.rating_toko = db
+      .prepare(
+        `SELECT ROUND(AVG(r.score),1) AS rata, COUNT(*) AS n
+         FROM ratings r JOIN products p ON p.id = r.product_id
+         WHERE p.seller_id = ? AND r.is_hidden = 0`
+      )
+      .get(product.seller_id) as any;
+  }
 
   toko.jumlah_pengikut = (
     db
       .prepare("SELECT COUNT(*) AS n FROM toko_follow WHERE seller_id = ?")
       .get(product.seller_id) as any
   ).n;
-
-  toko.rating_toko = db
-    .prepare(
-      `SELECT ROUND(AVG(r.score),1) AS rata, COUNT(*) AS n
-       FROM ratings r JOIN products p ON p.id = r.product_id
-       WHERE p.seller_id = ? AND r.is_hidden = 0`
-    )
-    .get(product.seller_id) as any;
 
   // ---- Status pengguna (opsional - tidak wajib login) ----
   // Sengaja TIDAK memakai authMiddleware: halaman detail produk harus bisa
@@ -367,6 +430,9 @@ router.get("/:id", readLimiter, (req, res) => {
   res.json({
     product: {
       ...product,
+      // Produk KWU tampil atas nama UNIT, bukan nama staf pembuatnya.
+      seller_name: namaPenjual(product),
+      unit_slug: KATEGORI_UNIT[product.category] || null,
       images: images.length ? images : product.image_url ? [product.image_url] : [],
     },
     variants,

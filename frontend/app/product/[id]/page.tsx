@@ -186,6 +186,18 @@ export default function DetailProdukPage() {
   const stok = Number(produk?.stock ?? 0);
   const tutup = produk?.seller_shop_open === 0;
 
+  // Produk UNIT KWU (brital/laundry): dibeli lewat keranjang/beli langsung, dan
+  // chat-nya masuk ke ruang unit (bukan ke pribadi staf yang membuat produk).
+  // Produk siswa (makanan/minuman/jasa/barang) tetap pakai chat 1:1 ke penjual.
+  const unitSlugProduk =
+    produk?.unit_slug ||
+    (produk?.category === "brital" || produk?.category === "kwu_brital"
+      ? "kwu_brital"
+      : produk?.category === "laundry" || produk?.category === "kwu_laundry"
+        ? "kwu_laundry"
+        : null);
+  const isProdukUnit = Boolean(unitSlugProduk);
+
   const diskon = useMemo(() => {
     if (!produk?.harga_asli || produk.harga_asli <= produk.price) return 0;
     return Math.round(((produk.harga_asli - produk.price) / produk.harga_asli) * 100);
@@ -289,9 +301,15 @@ export default function DetailProdukPage() {
     if (!user) return router.push("/login");
     setSedang("chat");
     try {
+      // Produk KWU (brital/laundry) HARUS masuk ke chat unit KWU, bukan chat
+      // pribadi staf yang membuat produk — supaya siapa pun staf unit yang
+      // berjaga bisa membalas. Produk siswa tetap chat 1:1 ke penjual.
+      const body = unitSlugProduk
+        ? { unit_slug: unitSlugProduk, product_id: Number(id) }
+        : { seller_id: produk.seller_id, product_id: Number(id) };
       const d = await api<{ chat: { id: string } }>("/chats", {
         method: "POST",
-        json: { seller_id: produk.seller_id, product_id: Number(id) },
+        json: body,
       });
       router.push(`/chat/${d.chat.id}`);
     } catch (e: any) {
@@ -305,9 +323,12 @@ export default function DetailProdukPage() {
     if (!user) return router.push("/login");
     setSedang("chat");
     try {
+      const body = unitSlugProduk
+        ? { unit_slug: unitSlugProduk, product_id: Number(id) }
+        : { seller_id: produk.seller_id, product_id: Number(id) };
       const d = await api<{ chat: { id: string } }>("/chats", {
         method: "POST",
-        json: { seller_id: produk.seller_id, product_id: Number(id) },
+        json: body,
       });
       const baris = [
         `Halo, saya mau pesan *${produk.name}*`,
@@ -397,7 +418,12 @@ export default function DetailProdukPage() {
     { id: "ulasan", label: "Ulasan", hitung: ringkas.total },
   ];
 
-  const namaToko = toko?.nama_toko || produk.seller_name;
+  // Nama penjual yang ditampilkan. Untuk produk UNIT KWU, WAJIB nama unit —
+  // jangan pakai nama_toko pribadi staf (mis. "Toko Andi") karena produk unit
+  // bukan milik orang tertentu. Produk siswa tetap pakai nama toko pribadinya.
+  const namaToko = isProdukUnit
+    ? produk.seller_name || (unitSlugProduk === "kwu_brital" ? "Ayam Geprek Brital" : "KWU Laundry")
+    : toko?.nama_toko || produk.seller_name;
 
   return (
     <>
@@ -544,27 +570,9 @@ export default function DetailProdukPage() {
             {/* ---------- 6. Tombol aksi ---------- */}
             {!milikSendiri ? (
               <div className="mt-4 space-y-2">
-                {produk.category === "jasa" || produk.category === "minuman" || produk.category === "makanan" ? (
-                  // Jualan siswa: hubungi dulu supaya penjual bisa memastikan stok & waktu.
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={hubungiUntukPesan}
-                      disabled={sedang !== null || stok <= 0 || tutup}
-                      className="flex-1 rounded-full bg-peran-aksi px-5 py-3 text-sm font-semibold text-peran-terang transition-colors hover:bg-peran-aksi-hover disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {sedang === "chat" ? "Membuka chat..." : "Hubungi untuk Pesan"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={tambahKeranjang}
-                      disabled={sedang !== null || stok <= 0 || tutup}
-                      className="rounded-full border border-peran-garis-tegas px-5 py-3 text-sm font-semibold text-peran-utama transition-colors hover:bg-peran-sorot disabled:opacity-50"
-                    >
-                      + Keranjang
-                    </button>
-                  </div>
-                ) : (
+                {isProdukUnit ? (
+                  // Produk unit KWU (brital/laundry): bisa langsung dibeli
+                  // lewat keranjang / beli langsung.
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -581,6 +589,20 @@ export default function DetailProdukPage() {
                       className="rounded-full border border-peran-aksi px-5 py-3 text-sm font-semibold text-peran-aksi transition-colors hover:bg-peran-aksi-lembut disabled:opacity-50"
                     >
                       {sedang === "keranjang" ? "Menambah..." : "+ Keranjang"}
+                    </button>
+                  </div>
+                ) : (
+                  // Jualan siswa (makanan/minuman/jasa/barang): hubungi dulu
+                  // supaya penjual bisa memastikan stok & waktu. Keranjang tidak
+                  // berlaku untuk produk siswa.
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={hubungiUntukPesan}
+                      disabled={sedang !== null || stok <= 0 || tutup}
+                      className="flex-1 rounded-full bg-peran-aksi px-5 py-3 text-sm font-semibold text-peran-terang transition-colors hover:bg-peran-aksi-hover disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {sedang === "chat" ? "Membuka chat..." : "Hubungi untuk Pesan"}
                     </button>
                   </div>
                 )}
@@ -643,7 +665,24 @@ export default function DetailProdukPage() {
             {/* ---------- 7. Kotak toko ---------- */}
             <div className="mt-5 rounded-card border border-peran-garis bg-peran-kartu p-4">
               <div className="flex items-start gap-3">
-                {toko?.foto_url || produk.seller_photo ? (
+                {isProdukUnit ? (
+                  // Produk unit KWU: pakai lencana unit, bukan foto profil staf
+                  // (staf bergantian tiap shift, produk bukan milik pribadi).
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-peran-aksi-lembut text-peran-aksi">
+                    {unitSlugProduk === "kwu_brital" ? (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M4 10h16l-1.2 10H5.2L4 10Z" />
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                      </svg>
+                    ) : (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <rect x="4" y="3" width="16" height="18" rx="2" />
+                        <circle cx="12" cy="13" r="4" />
+                        <path d="M7 6h2" />
+                      </svg>
+                    )}
+                  </span>
+                ) : toko?.foto_url || produk.seller_photo ? (
                   <img
                     src={toko?.foto_url || produk.seller_photo}
                     alt={namaToko}
@@ -660,6 +699,11 @@ export default function DetailProdukPage() {
 
                 <div className="min-w-0 flex-1">
                   <h2 className="truncate font-bold text-peran-utama">{namaToko}</h2>
+                  {isProdukUnit && (
+                    <p className="text-[11px] font-sub font-semibold uppercase tracking-wide text-peran-aksi">
+                      Unit Resmi Sekolah
+                    </p>
+                  )}
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-peran-kedua">
                     {toko?.rating_toko?.rata ? (
                       <>
@@ -708,10 +752,10 @@ export default function DetailProdukPage() {
                   </button>
                 )}
                 <Link
-                  href={`/profile/${produk.seller_id}`}
+                  href={isProdukUnit ? `/unit/${unitSlugProduk}` : `/profile/${produk.seller_id}`}
                   className="flex-1 rounded-full border border-peran-garis-tegas px-4 py-2 text-center text-sm font-semibold text-peran-utama transition-colors hover:bg-peran-sorot"
                 >
-                  Lihat Toko
+                  {isProdukUnit ? "Lihat Unit" : "Lihat Toko"}
                 </Link>
               </div>
             </div>

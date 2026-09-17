@@ -18,6 +18,9 @@ interface ProductDetail {
   seller_id: number;
   image_url: string | null;
   images: string[];
+  harga_asli?: number | null;
+  spesifikasi?: string | null;
+  info_penting?: string | null;
 }
 
 export default function EditProductPage() {
@@ -29,10 +32,18 @@ export default function EditProductPage() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    api<{ product: ProductDetail }>(`/products/${id}`)
+    api<{ product: ProductDetail; spesifikasi?: string | null; info_penting?: string | null }>(`/products/${id}`)
       .then((d) => {
-        setProduct(d.product)
-        if (d.product.seller_id !== user?.id && user?.role !== "admin") {
+        const p = d.product;
+        // Gabungkan field top-level (spesifikasi, info_penting) ke objek produk
+        // supaya ProductForm menerimanya lewat `initial`.
+        const merged: ProductDetail = {
+          ...p,
+          spesifikasi: d.spesifikasi ?? p.spesifikasi ?? null,
+          info_penting: d.info_penting ?? p.info_penting ?? null,
+        };
+        setProduct(merged);
+        if (p.seller_id !== user?.id && user?.role !== "admin") {
           router.replace("/marketplace");
         }
       })
@@ -87,6 +98,9 @@ export default function EditProductPage() {
             stock: product.stock,
             category: product.category,
             image_urls: product.images.length ? product.images : product.image_url ? [product.image_url] : [],
+            harga_asli: product.harga_asli ?? null,
+            spesifikasi: product.spesifikasi ?? null,
+            info_penting: product.info_penting ?? null,
           }}
           onSuccess={() => router.push(`/product/${product.id}`)}
         />

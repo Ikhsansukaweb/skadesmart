@@ -64,23 +64,28 @@ export default function LoginPage() {
                 height={40}
                 className="object-cover"
               />
-              <span className="text-white font-bold text-lg lg:text-xl tracking-tight">SkadesMart</span>
+              {/* Teks di atas FOTO memakai putih MUTLAK (!text-[#ffffff]),
+                  BUKAN `text-white`. Sebab `text-white` di proyek ini menunjuk
+                  token merek `--teks-terang` (tailwind.config.ts baris 101)
+                  yang nilainya bisa berubah jadi GELAP - akibatnya tulisan di
+                  atas foto jadi hitam dan tidak terbaca. */}
+              <span className="!text-[#ffffff] font-bold text-lg lg:text-xl tracking-tight">SkadesMart</span>
             </div>
-            <p className="text-white/70 text-xs uppercase tracking-widest font-medium">
+            <p className="!text-[#ffffff]/70 text-xs uppercase tracking-widest font-medium">
               MARKETPLACE INTERNAL SEKOLAH
             </p>
           </div>
 
           {/* Center - Headline (flex-1 to push to middle) */}
           <div className="flex-1 flex flex-col justify-center items-start min-h-0 overflow-hidden">
-            <h1 className="text-white font-extrabold leading-[1.05] text-3xl lg:text-4xl xl:text-5xl max-w-xl">
+            <h1 className="!text-[#ffffff] font-extrabold leading-[1.05] text-3xl lg:text-4xl xl:text-5xl max-w-xl">
               Satu marketplace untuk
               <br />
               semua kebutuhan
               <br />
               <span className="text-yellow-500">anak Skadesta</span>
             </h1>
-            <p className="text-white/80 text-sm lg:text-base mt-3 max-w-md font-normal leading-relaxed">
+            <p className="!text-[#ffffff]/80 text-sm lg:text-base mt-3 max-w-md font-normal leading-relaxed">
               Pesan Ayam Geprek Brital, titip cucian ke KWU Laundry, dan jualan bebas antar siswa — semua dalam satu aplikasi.
             </p>
           </div>

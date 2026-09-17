@@ -12,6 +12,7 @@ import {
   createLaundryOrderSchema,
   updateLaundryPaymentSchema,
   completeSiswaOrderSchema,
+  updateSellerOrderStatusSchema,
 } from "../validators/orderValidator";
 import {
   beritahuPesananBaru,
@@ -419,8 +420,8 @@ router.post(
 
     if (product_id) {
       const product = db.prepare("SELECT * FROM products WHERE id = ?").get(product_id) as any;
-      // Produk siswa = kategori non-unit (minuman/makanan/jasa) atau 'siswa' lama.
-      const kategoriSiswa = ["minuman", "makanan", "jasa", "siswa"];
+      // Produk siswa = kategori non-unit (minuman/makanan/jasa/barang) atau 'siswa' lama.
+      const kategoriSiswa = ["minuman", "makanan", "jasa", "barang", "siswa"];
       if (!product || product.seller_id !== req.user!.user_id || !kategoriSiswa.includes(product.category)) {
         return res.status(403).json({ error: "Produk tidak valid atau bukan milikmu." });
       }
@@ -445,5 +446,145 @@ router.post(
     res.status(201).json({ id: orderId });
   }
 );
+
+// ---------------------------------------------------------------------------
+// DASHBOARD SELLER SISWA - pesanan masuk ke penjual, update status, statistik
+// pendapatan. Penjual siswa jualan kategori minuman/makanan/jasa/barang.
+// ---------------------------------------------------------------------------
+
+const SELLER_STATUS_LABEL: Record<string, string> = {
+  baru: "Pesanan baru",
+  diproses: "Sedang diproses",
+  selesai: "Selesai",
+  dibatalkan: "Dibatalkan",
+};
+
+// GET /api/orders/sold - pesanan masuk sebagai PENJUAL (siswa yang jualan).
+// Mengembalikan semua order di mana seller_id = user login, beserta itemnya.
+router.get("/sold", authMiddleware, readLimiter, (req, res) => {
+  const orders = db
+    .prepare(
+      `SELECT o.*, u.full_name AS buyer_name, u.class_name AS buyer_class, u.nisn AS buyer_nisn
+       FROM orders o JOIN users u ON u.id = o.buyer_id
+       WHERE o.seller_id = ? ORDER BY o.created_at DESC`
+    )
+    .all(req.user!.user_id) as any[];
+
+  const itemsStmt = db.prepare(
+    `SELECT oi.product_id, oi.product_name, oi.unit_price, oi.quantity, oi.note
+     FROM order_items oi WHERE oi.order_id = ?`
+  );
+  const withItems = orders.map((o) => ({
+    ...o,
+    items: itemsStmt.all(o.id),
+  }));
+
+  res.json({ orders: withItems });
+});
+
+// PUT /api/orders/:id/seller-status - seller siswa update status pesanan
+// miliknya. Hanya pemilik (seller_id = user login) yang boleh.
+router.put(
+  "/:id/seller-status",
+  authMiddleware,
+  defaultLimiter,
+  validate(updateSellerOrderStatusSchema),
+  async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+
+      const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(id) as any;
+      if (!order) return res.status(404).json({ error: "Pesanan tidak ditemukan." });
+      if (order.seller_id !== req.user!.user_id && req.user!.role !== "admin") {
+        return res.status(403).json({ error: "Pesanan ini bukan milikmu." });
+      }
+
+      db.prepare("UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?").run(status, id);
+      await mirrorOrderStatus(id, { buyerId: order.buyer_id, sellerId: order.seller_id, status });
+
+      // Notifikasi ke pembeli
+      const buyer = db.prepare("SELECT notif_enabled FROM users WHERE id = ?").get(order.buyer_id) as any;
+      if (buyer?.notif_enabled) {
+        await kirimNotif(
+          order.buyer_id,
+          "Status pesanan diperbarui",
+          `Status pesananmu sekarang: ${SELLER_STATUS_LABEL[status] || status}`,
+          "/orders/status"
+        );
+      }
+
+      res.json({ message: "Status pesanan diperbarui.", status });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// GET /api/orders/seller-stats - ringkasan pendapatan + statistik 7 hari
+// terakhir untuk dashboard seller siswa.
+router.get("/seller-stats", authMiddleware, readLimiter, (req, res) => {
+  const sellerId = req.user!.user_id;
+
+  // Ringkasan total
+  const ringkas = db
+    .prepare(
+      `SELECT
+         COUNT(*) AS total_pesanan,
+         COALESCE(SUM(CASE WHEN status = 'selesai' THEN total_price ELSE 0 END), 0) AS total_pendapatan,
+         COUNT(CASE WHEN status IN ('baru','diproses') THEN 1 END) AS pesanan_aktif,
+         COUNT(CASE WHEN status = 'selesai' THEN 1 END) AS pesanan_selesai
+       FROM orders WHERE seller_id = ?`
+    )
+    .get(sellerId) as any;
+
+  // Statistik 7 hari terakhir (pesanan selesai per hari)
+  const rows = db
+    .prepare(
+      `SELECT date(created_at) AS day,
+              COUNT(*) AS count,
+              COALESCE(SUM(CASE WHEN status = 'selesai' THEN total_price ELSE 0 END), 0) AS revenue
+       FROM orders
+       WHERE seller_id = ? AND date(created_at) >= date('now', '-6 days')
+       GROUP BY date(created_at)`
+    )
+    .all(sellerId) as { day: string; count: number; revenue: number }[];
+
+  // Lengkapi 7 hari walau tidak ada transaksi
+  const days: { day: string; count: number; revenue: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const found = rows.find((r) => r.day === key);
+    days.push({ day: key, count: found?.count || 0, revenue: found?.revenue || 0 });
+  }
+
+  // Produk terlaris (top 5 berdasarkan jumlah terjual dari order_items seller)
+  const terlaris = db
+    .prepare(
+      `SELECT oi.product_id, oi.product_name,
+              SUM(oi.quantity) AS terjual,
+              SUM(oi.quantity * oi.unit_price) AS pendapatan
+       FROM order_items oi
+       JOIN orders o ON o.id = oi.order_id
+       WHERE o.seller_id = ? AND o.status = 'selesai'
+       GROUP BY oi.product_id
+       ORDER BY terjual DESC
+       LIMIT 5`
+    )
+    .all(sellerId) as any[];
+
+  res.json({
+    ringkas: {
+      total_pesanan: ringkas?.total_pesanan || 0,
+      total_pendapatan: ringkas?.total_pendapatan || 0,
+      pesanan_aktif: ringkas?.pesanan_aktif || 0,
+      pesanan_selesai: ringkas?.pesanan_selesai || 0,
+    },
+    days,
+    terlaris,
+  });
+});
 
 export default router;

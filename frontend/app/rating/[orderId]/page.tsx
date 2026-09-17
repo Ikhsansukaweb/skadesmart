@@ -26,7 +26,7 @@ export default function RatingPage() {
         method: "POST",
         json: { order_id: Number(orderId), score, comment: comment || undefined },
       });
-      router.push("/orders/status");
+      router.push("/account");
     } catch (err: any) {
       setError(err.message || "Gagal mengirim rating.");
     } finally {

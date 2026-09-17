@@ -142,37 +142,6 @@ function MarketplaceContent() {
     <>
       <Navbar />
       <main className="mx-auto max-w-page px-4 pb-24 pt-5 md:pb-10">
-        {/* ---------------- Jejak navigasi ---------------- */}
-        <nav className="mb-3 flex items-center gap-1.5 text-sm text-peran-kedua" aria-label="Jejak navigasi">
-          <Link href="/home" className="hover:text-peran-aksi">Beranda</Link>
-          <span className="text-peran-samar">/</span>
-          <span className="font-semibold text-peran-utama">
-            {filter.kategori.length === 1
-              ? filter.kategori[0].charAt(0).toUpperCase() + filter.kategori[0].slice(1)
-              : "Semua Produk"}
-          </span>
-        </nav>
-
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h1 className="text-xl font-bold tracking-heading text-peran-utama md:text-2xl">
-              {cari ? `Hasil pencarian "${cari}"` : "Jelajahi Produk"}
-            </h1>
-            <p className="mt-0.5 text-sm text-peran-kedua">
-              Produk dari unit KWU Brital, Laundry, dan jualan siswa SMKN 1 Depok Sleman.
-            </p>
-          </div>
-          <Link
-            href="/product/add"
-            className="inline-flex items-center gap-2 rounded-full bg-peran-aksi px-4 py-2.5 text-sm font-semibold text-peran-terang transition-colors hover:bg-peran-aksi-hover"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Jual Barang
-          </Link>
-        </div>
-
         {/* ---------------- Bilah urut ---------------- */}
         <BilahUrut
           nilai={urut}

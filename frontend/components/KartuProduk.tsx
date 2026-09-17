@@ -51,6 +51,7 @@ const NAMA_KATEGORI: Record<string, string> = {
   minuman: "Minuman",
   makanan: "Makanan",
   jasa: "Jasa",
+  barang: "Barang",
 };
 
 /** Format rupiah tanpa desimal: 12500 -> "Rp12.500" */

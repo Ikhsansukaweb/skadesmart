@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
-import ToggleTema from "@/components/ToggleTema";
 import { useUnreadChatCount } from "@/lib/use-unread-chat";
 import { halamanTanpaNavbar } from "@/lib/navs";
 import BrandLockup from "./BrandLockup";
@@ -24,8 +23,18 @@ import BrandLockup from "./BrandLockup";
 const BASE_NAV = [
   { href: "/home", label: "Beranda", icon: Home },
   { href: "/marketplace", label: "Marketplace", icon: Store },
-  { href: "/orders/status", label: "Pesanan", icon: PackageSearch },
   { href: "/chat", label: "Chat", icon: MessageCircle },
+  { href: "/dashboard/seller", label: "Seller", icon: Store },
+  { href: "/account", label: "Akun", icon: User },
+];
+
+// Mobile bottom nav: 5 tab. "Pesanan" sudah ada di halaman Akun, jadi tidak
+// perlu tab terpisah di navbar.
+const MOBILE_NAV = [
+  { href: "/home", label: "Beranda", icon: Home },
+  { href: "/marketplace", label: "Marketplace", icon: Store },
+  { href: "/chat", label: "Chat", icon: MessageCircle },
+  { href: "/dashboard/seller", label: "Seller", icon: Store },
   { href: "/account", label: "Akun", icon: User },
 ];
 
@@ -49,11 +58,14 @@ export default function Navbar({ dashboardMode = false }: { dashboardMode?: bool
   if (halamanTanpaNavbar(pathname)) return null;
 
   const extra = ROLE_EXTRA[user.role];
-  const mobileNav = extra ? [...BASE_NAV, extra] : BASE_NAV;
+  const mobileNav = extra ? [...MOBILE_NAV, extra] : MOBILE_NAV;
 
+  // Navbar atas tetap tampil di SEMUA ukuran layar (desktop & mobile).
+  // prop `dashboardMode` tidak lagi menyembunyikan navbar di desktop karena
+  // sidebar sekarang fixed, bukan menggantikan navbar.
   return (
     <>
-      <header className={`sticky top-0 z-30 bg-peran-kartu/90 backdrop-blur border-b border-peran-garis ${dashboardMode ? "lg:hidden" : ""}`}>
+      <header className="sticky top-0 z-30 bg-peran-kartu/90 backdrop-blur border-b border-peran-garis">
         <div className="max-w-page mx-auto flex items-center justify-between px-4 py-3">
           <Link href="/home" className="shrink-0">
             <BrandLockup size={40} />
@@ -87,7 +99,22 @@ export default function Navbar({ dashboardMode = false }: { dashboardMode?: bool
             )}
           </nav>
           <div className="flex items-center gap-2">
-            <ToggleTema />
+            {/* Tombol mode gelap <ToggleTema /> DIHAPUS atas permintaan pemilik
+                produk. Mode gelap dimatikan sementara - lihat catatan lengkap
+                di components/ToggleTema.tsx. */}
+            {/* Tombol Seller kecil (mobile) - akses cepat dashboard seller.
+                Di desktop sudah ada di nav atas, jadi tombol ini disembunyikan. */}
+            <Link
+              href="/dashboard/seller"
+              className={`md:hidden relative p-2 rounded-full transition-colors ${
+                pathname.startsWith("/dashboard/seller")
+                  ? "bg-peran-aksi text-peran-terang"
+                  : "text-peran-utama hover:bg-peran-sorot"
+              }`}
+              aria-label="Dashboard Seller"
+            >
+              <Store size={20} aria-hidden="true" />
+            </Link>
             {count > 0 && (
               <button onClick={openCart} className="relative p-2 text-peran-utama hover:bg-peran-sorot rounded-full" aria-label="Keranjang">
                 <ShoppingCart size={20} aria-hidden="true" />
@@ -127,14 +154,8 @@ export default function Navbar({ dashboardMode = false }: { dashboardMode?: bool
             {label}
           </Link>
         ))}
-        {/* Tombol tema - bentuknya dibuat sama dengan tab lain supaya
-            tidak terlihat sebagai elemen asing di baris navigasi. */}
-        <ToggleTema
-          varian="tab"
-          className={`px-2 py-1 text-xs font-sub ${
-            "text-peran-samar"
-          }`}
-        />
+        {/* Tombol tema (versi tab) DIHAPUS bersama mode gelap - lihat catatan
+            di components/ToggleTema.tsx. */}
       </nav>
     </>
   );

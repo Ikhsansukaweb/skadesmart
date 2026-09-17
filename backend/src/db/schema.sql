@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS kwu_units (
 CREATE TABLE IF NOT EXISTS products (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   seller_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  category    TEXT NOT NULL CHECK (category IN ('brital','laundry','minuman','makanan','jasa','kwu_brital','siswa')),
+  category    TEXT NOT NULL CHECK (category IN ('brital','laundry','minuman','makanan','jasa','barang','kwu_brital','siswa')),
   name        TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
   price       INTEGER NOT NULL CHECK (price >= 0),

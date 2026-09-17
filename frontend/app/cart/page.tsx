@@ -78,7 +78,7 @@ export default function CartPage() {
     try {
       await api("/orders/brital/checkout", { method: "POST", json: { note: orderNote || undefined } });
       refreshCartBadge();
-      router.push("/orders/status");
+      router.push("/account");
     } catch (err: any) {
       setError(err.message || "Checkout gagal.");
     } finally {

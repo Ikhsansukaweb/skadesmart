@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, LoaderCircle, Trash2, Star } from "lucide-react";
-import Navbar from "@/components/Navbar";
+import { LoaderCircle, Trash2, Star } from "lucide-react";
+import SubPageShell from "@/components/dashboard/SubPageShell";
 import StatusBadge from "@/components/StatusBadge";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -27,8 +26,6 @@ interface HistoryOrder {
 
 const DONE_STATUSES = ["selesai", "dibatalkan"];
 
-// Riwayat: pesanan yang sudah selesai/dibatalkan, terpisah dari Pesanan Aktif.
-// Bisa hapus riwayat, atau kirim kartu permintaan rating ke chat pembeli.
 export default function BritalHistoryPage() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<HistoryOrder[]>([]);
@@ -69,60 +66,63 @@ export default function BritalHistoryPage() {
   if (user && user.role !== "kwu_brital" && user.role !== "admin") {
     return (
       <main className="min-h-screen">
-        <Navbar />
         <p className="text-center py-10 text-fog font-body">Halaman ini khusus staf KWU Brital.</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen pb-20 md:pb-8">
-      <Navbar />
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
-        <Link href="/dashboard/brital" className="inline-flex items-center gap-2 text-sm text-brand-600 font-sub">
-          <ArrowLeft size={16} aria-hidden="true" /> Kembali ke Dashboard
-        </Link>
-        <h1 className="text-2xl text-brand-700">Riwayat Pesanan</h1>
-
-        <div className="space-y-3">
-          {orders.map((o) => (
-            <div key={o.id} className="card p-4 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3 className="font-sub font-medium">{o.buyer_name}</h3>
-                  <p className="text-sm text-steel font-body">{o.buyer_class}</p>
-                </div>
-                <StatusBadge status={o.status} />
+    <SubPageShell role="kwu_brital" title="Riwayat Pesanan">
+      <div className="space-y-3">
+        {orders.map((o) => (
+          <div key={o.id} className="card p-4 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h3 className="font-sub font-medium text-peran-utama">{o.buyer_name}</h3>
+                <p className="text-sm text-peran-kedua font-body">{o.buyer_class}</p>
               </div>
-              <ul className="text-sm font-body text-steel space-y-0.5">
-                {o.items.map((it, idx) => <li key={idx}>{it.product_name} x{it.quantity}</li>)}
-              </ul>
-              <p className="font-heading text-brand-700">Rp{o.total_price.toLocaleString("id-ID")}</p>
-
-              <div className="flex gap-2 pt-1 flex-wrap">
-                {o.status === "selesai" && (
-                  <button
-                    onClick={() => handleRequestRating(o)}
-                    disabled={busyId === o.id}
-                    className="btn-secondary text-sm flex items-center gap-2"
-                  >
-                    {busyId === o.id ? <LoaderCircle size={14} className="animate-spin" aria-hidden="true" /> : <Star size={14} aria-hidden="true" />}
-                    Minta Rating
-                  </button>
-                )}
-                <button
-                  onClick={() => handleDelete(o.id)}
-                  disabled={busyId === o.id}
-                  className="text-sm text-ember-600 flex items-center gap-2 px-3 py-2"
-                >
-                  <Trash2 size={14} aria-hidden="true" /> Hapus Riwayat
-                </button>
-              </div>
+              <StatusBadge status={o.status} />
             </div>
-          ))}
-          {orders.length === 0 && <p className="text-fog font-body text-sm">Belum ada riwayat.</p>}
-        </div>
+            <ul className="text-sm font-body text-peran-kedua space-y-0.5">
+              {o.items.map((it, idx) => (
+                <li key={idx}>
+                  {it.product_name} x{it.quantity}
+                </li>
+              ))}
+            </ul>
+            <p className="font-heading font-semibold text-peran-aksi">
+              Rp{o.total_price.toLocaleString("id-ID")}
+            </p>
+
+            <div className="flex gap-2 pt-1 flex-wrap">
+              {o.status === "selesai" && (
+                <button
+                  onClick={() => handleRequestRating(o)}
+                  disabled={busyId === o.id}
+                  className="btn-secondary text-sm flex items-center gap-2"
+                >
+                  {busyId === o.id ? (
+                    <LoaderCircle size={14} className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Star size={14} aria-hidden="true" />
+                  )}
+                  Minta Rating
+                </button>
+              )}
+              <button
+                onClick={() => handleDelete(o.id)}
+                disabled={busyId === o.id}
+                className="text-sm text-peran-aksen flex items-center gap-2 px-3 py-2"
+              >
+                <Trash2 size={14} aria-hidden="true" /> Hapus Riwayat
+              </button>
+            </div>
+          </div>
+        ))}
+        {orders.length === 0 && (
+          <p className="text-peran-samar font-body text-sm">Belum ada riwayat.</p>
+        )}
       </div>
-    </main>
+    </SubPageShell>
   );
 }

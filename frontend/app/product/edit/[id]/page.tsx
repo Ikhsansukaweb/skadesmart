@@ -4,8 +4,10 @@ import { useEffect, useState, FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { ImagePlus, LoaderCircle, X } from "lucide-react";
-import Navbar from "@/components/Navbar";
+import SubPageShell from "@/components/dashboard/SubPageShell";
+import type { DashboardRole } from "@/components/dashboard/DashboardSidebar";
 import { api, uploadImages } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
 const MAX_PHOTOS = 8;
 
@@ -24,6 +26,10 @@ interface ProductDetail {
 export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { user } = useAuth();
+
+  const peranDashboard: DashboardRole =
+    user?.role === "kwu_laundry" ? "kwu_laundry" : "kwu_brital";
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -98,67 +104,63 @@ export default function EditProductPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen">
-        <Navbar />
-        <p className="text-center py-10 text-fog font-body">Memuat produk...</p>
-      </main>
+      <SubPageShell role={peranDashboard} title="Edit Produk">
+        <p className="text-center py-10 text-peran-samar font-body">Memuat produk...</p>
+      </SubPageShell>
     );
   }
 
   const totalPhotos = existingImages.length + newPreviews.length;
 
   return (
-    <main className="min-h-screen pb-20 md:pb-8">
-      <Navbar />
-      <div className="max-w-lg mx-auto px-4 py-6">
-        <h1 className="text-2xl text-brand-700 mb-4">Edit Produk</h1>
-        <form onSubmit={handleSubmit} className="card p-5 space-y-4">
-          <div>
-            <label className="block text-sm font-sub mb-1 text-steel">Foto produk ({totalPhotos}/{MAX_PHOTOS})</label>
-            <div className="grid grid-cols-3 gap-2">
-              {existingImages.map((src, idx) => (
-                <div key={`old-${idx}`} className="relative aspect-square rounded-badge overflow-hidden bg-electric-100">
-                  <img src={src} alt="Gambar" decoding="async" className="h-full w-full object-cover" />
-                  <button type="button" onClick={() => removeExisting(idx)} className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1" aria-label="Hapus foto">
-                    <X size={12} aria-hidden="true" />
-                  </button>
-                </div>
-              ))}
-              {newPreviews.map((src, idx) => (
-                <div key={`new-${idx}`} className="relative aspect-square rounded-badge overflow-hidden bg-electric-100">
-                  <img src={src} alt="Gambar" decoding="async" className="h-full w-full object-cover" />
-                  <button type="button" onClick={() => removeNew(idx)} className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1" aria-label="Hapus foto">
-                    <X size={12} aria-hidden="true" />
-                  </button>
-                </div>
-              ))}
-              {totalPhotos < MAX_PHOTOS && (
-                <label className="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-sand rounded-badge aspect-square cursor-pointer bg-parchment">
-                  <ImagePlus size={22} className="text-brand-400" aria-hidden="true" />
-                  <span className="text-[10px] text-brand-500 font-body text-center px-1">Tambah foto</span>
-                  <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleNewFiles} className="hidden" />
-                </label>
-              )}
-            </div>
+    <SubPageShell role={peranDashboard} title="Edit Produk">
+      <form onSubmit={handleSubmit} className="card p-5 space-y-4 max-w-lg">
+        <div>
+          <label className="block text-sm font-sub mb-1 text-peran-kedua">Foto produk ({totalPhotos}/{MAX_PHOTOS})</label>
+          <div className="grid grid-cols-3 gap-2">
+            {existingImages.map((src, idx) => (
+              <div key={`old-${idx}`} className="relative aspect-square rounded-badge overflow-hidden bg-peran-lembut">
+                <img src={src} alt="Gambar" decoding="async" className="h-full w-full object-cover" />
+                <button type="button" onClick={() => removeExisting(idx)} className="absolute top-1 right-1 bg-black/60 !text-[#ffffff] rounded-full p-1" aria-label="Hapus foto">
+                  <X size={12} aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+            {newPreviews.map((src, idx) => (
+              <div key={`new-${idx}`} className="relative aspect-square rounded-badge overflow-hidden bg-peran-lembut">
+                <img src={src} alt="Gambar" decoding="async" className="h-full w-full object-cover" />
+                <button type="button" onClick={() => removeNew(idx)} className="absolute top-1 right-1 bg-black/60 !text-[#ffffff] rounded-full p-1" aria-label="Hapus foto">
+                  <X size={12} aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+            {totalPhotos < MAX_PHOTOS && (
+              <label className="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-peran-garis rounded-badge aspect-square cursor-pointer bg-peran-sorot">
+                <ImagePlus size={22} className="text-peran-samar" aria-hidden="true" />
+                <span className="text-[10px] text-peran-kedua font-body text-center px-1">Tambah foto</span>
+                <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleNewFiles} className="hidden" />
+              </label>
+            )}
           </div>
+        </div>
 
           <div>
-            <label htmlFor="name" className="block text-sm font-sub mb-1 text-steel">Nama produk</label>
+            <label htmlFor="name" className="block text-sm font-sub mb-1 text-peran-kedua">Nama produk</label>
             <input id="name" required value={name} onChange={(e) => setName(e.target.value)} className="input-field" />
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-sub mb-1 text-steel">Deskripsi</label>
+            <label htmlFor="description" className="block text-sm font-sub mb-1 text-peran-kedua">Deskripsi</label>
             <textarea id="description" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} className="input-field" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="price" className="block text-sm font-sub mb-1 text-steel">Harga (Rp)</label>
+              <label htmlFor="price" className="block text-sm font-sub mb-1 text-peran-kedua">Harga (Rp)</label>
               <input id="price" type="number" min={0} required value={price} onChange={(e) => setPrice(e.target.value)} className="input-field" />
             </div>
             <div>
-              <label htmlFor="stock" className="block text-sm font-sub mb-1 text-steel">Stok</label>
+              <label htmlFor="stock" className="block text-sm font-sub mb-1 text-peran-kedua">Stok</label>
               <input id="stock" type="number" min={0} required value={stock} onChange={(e) => setStock(e.target.value)} className="input-field" />
             </div>
           </div>
@@ -170,7 +172,6 @@ export default function EditProductPage() {
             Simpan Perubahan
           </button>
         </form>
-      </div>
-    </main>
+    </SubPageShell>
   );
 }

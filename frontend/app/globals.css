@@ -201,3 +201,18 @@ select:focus-visible {
   @apply inline-flex items-center gap-1.5 bg-peran-utama text-peran-terang text-caption font-sub font-medium
          px-4 py-1.5 rounded-full;
 }
+
+/* Animasi slide-in untuk drawer sidebar mobile.
+   Dipakai oleh DashboardSidebar saat tombol hamburger ditekan. */
+@keyframes slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.25s ease-out;
+}

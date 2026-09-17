@@ -46,4 +46,10 @@ export const completeSiswaOrderSchema = z.object({
   price: z.number().int().min(0),
 }).strict();
 
+// Dipakai seller siswa untuk memperbarui status pesanan yang masuk ke dia.
+// Nilai sah: 'baru', 'diproses', 'selesai', 'dibatalkan'.
+export const updateSellerOrderStatusSchema = z.object({
+  status: z.enum(["baru", "diproses", "selesai", "dibatalkan"]),
+}).strict();
+
 export type CreateLaundryOrderInput = z.infer<typeof createLaundryOrderSchema>;

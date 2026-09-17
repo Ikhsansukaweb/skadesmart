@@ -29,7 +29,9 @@ router.post("/", authMiddleware, defaultLimiter, validate(addCartItemSchema), (r
 
   const product = db.prepare("SELECT * FROM products WHERE id = ? AND is_active = 1").get(product_id) as any;
   if (!product) return res.status(404).json({ error: "Produk tidak ditemukan." });
-  if (product.category !== "kwu_brital") {
+  // Kategori produk KWU Brital ditulis "brital" di basis data baru, tetapi
+  // "kwu_brital" masih dipakai data lama — terima keduanya.
+  if (product.category !== "brital" && product.category !== "kwu_brital") {
     return res.status(400).json({ error: "Keranjang hanya berlaku untuk produk KWU Brital." });
   }
 

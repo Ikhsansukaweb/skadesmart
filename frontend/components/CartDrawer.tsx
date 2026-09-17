@@ -37,7 +37,7 @@ export default function CartDrawer() {
       await api("/orders/brital/checkout", { method: "POST", json: { note: orderNote || undefined } });
       refresh();
       close();
-      router.push("/orders/status");
+      router.push("/account");
     } catch (err: any) {
       setError(err.message || "Checkout gagal.");
     } finally {

@@ -43,10 +43,10 @@ function isKwuRole(role: string): role is "kwu_brital" | "kwu_laundry" {
 
 // Cek apakah user berhak akses baris chat tertentu: partisipan langsung
 // (buyer/seller individu), ATAU staf dengan role yang cocok kalau chat ini
-// milik unit KWU (bukan individu).
+// milik unit KWU (bukan individu). Admin & CS ikut boleh membalas chat KWU.
 function canAccessChat(chat: any, userId: number, role: string): boolean {
   if (chat.buyer_id === userId || chat.seller_id === userId) return true;
-  if (chat.unit_slug && chat.unit_slug === role) return true;
+  if (chat.unit_slug && (chat.unit_slug === role || role === "admin" || role === "cs")) return true;
   return false;
 }
 
@@ -116,13 +116,20 @@ router.post("/", authMiddleware, defaultLimiter, validate(createChatSchema), asy
 
 // GET /api/chats - daftar chat milik user: partisipan langsung + (kalau role
 // kwu_brital/kwu_laundry) semua chat milik unit itu juga.
+//
+// PENTING: chat KWU (kolom unit_slug terisi) SENGAJA tidak dimasukkan ke daftar
+// ini untuk staf KWU. Chat unit hanya dikelola lewat halaman /dashboard/<unit>/chat.
+// Kalau ikut dimasukkan, chat unit muncul dua kali (di chat pribadi DAN di
+// dashboard) sehingga membingungkan.
 router.get("/", authMiddleware, readLimiter, (req, res) => {
   const myId = req.user!.user_id;
   const myRole = req.user!.role;
 
   let rows: any[];
   if (isKwuRole(myRole)) {
-    // KWU staff: lihat chat sendiri (buyer/seller) + semua chat unit miliknya
+    // Staf KWU: chat PRIBADI miliknya saja di sini.
+    // (Chat unit lihat di dashboard unit; pesan dari unit lain tidak terlihat
+    //  di sini supaya fokus dashboard tetap jelas.)
     rows = db
       .prepare(
         `SELECT c.*,
@@ -132,12 +139,31 @@ router.get("/", authMiddleware, readLimiter, (req, res) => {
          FROM chats c
          JOIN users ub ON ub.id = c.buyer_id
          LEFT JOIN users us ON us.id = c.seller_id
-         WHERE c.buyer_id = ? OR c.seller_id = ? OR c.unit_slug = ?
+         WHERE (c.buyer_id = ? OR c.seller_id = ?) AND c.unit_slug IS NULL
          ORDER BY COALESCE(c.last_message_at, c.created_at) DESC`
       )
-      .all(myId, myId, myId, myId, myId, myRole) as any[];
+      .all(myId, myId, myId, myId, myId) as any[];
+  } else if (myRole === "admin" || myRole === "cs") {
+    // Admin & CS: lihat chat sendiri + SEMUA chat KWU (untuk membantu membalas).
+    // Chat KWU hanya muncul di sini lewat "chat unit", bukan sebagai chat pribadi.
+    rows = db
+      .prepare(
+        `SELECT c.*,
+                CASE WHEN c.buyer_id = ? THEN us.full_name ELSE ub.full_name END AS other_name,
+                CASE WHEN c.buyer_id = ? THEN us.id ELSE ub.id END AS other_id,
+                CASE WHEN c.buyer_id = ? THEN us.profile_photo_url ELSE ub.profile_photo_url END AS other_photo
+         FROM chats c
+         JOIN users ub ON ub.id = c.buyer_id
+         LEFT JOIN users us ON us.id = c.seller_id
+         WHERE c.buyer_id = ? OR c.seller_id = ? OR c.unit_slug IS NOT NULL
+         ORDER BY COALESCE(c.last_message_at, c.created_at) DESC`
+      )
+      .all(myId, myId, myId, myId, myId) as any[];
   } else {
-    // Siswa, CS, Admin: hanya chat di mana mereka buyer atau seller
+    // Siswa: chat pribadi + chat unit yang dia mulai sendiri (sebagai pembeli).
+    // Chat unit tetap muncul di sini untuk pembeli karena merekalah yang perlu
+    // melihat balasan unit; halaman chat biasa adalah satu-satunya tempat bagi
+    // siswa untuk membacanya.
     rows = db
       .prepare(
         `SELECT c.*,
@@ -163,6 +189,46 @@ router.get("/", authMiddleware, readLimiter, (req, res) => {
     return { ...r, is_unit: false };
   });
 
+  res.json({ chats: result });
+});
+
+/**
+ * GET /api/chats/unit/:slug - SEMUA chat milik satu unit KWU.
+ *
+ * Dipakai halaman /dashboard/<unit>/chat. Berbeda dari GET /chats (yang hanya
+ * mengembalikan chat pribadi staf), endpoint ini mengembalikan SETIAP percakapan
+ * unit itu dari semua pembeli - jadi staf mana pun yang sedang bertugas bisa
+ * melihat dan membalas seluruh antrean, bukan cuma chat yang dia mulai sendiri.
+ *
+ * Hanya boleh diakses oleh staf unit yang bersangkutan (plus admin & CS).
+ */
+router.get("/unit/:slug", authMiddleware, readLimiter, (req, res) => {
+  const slug = String(req.params.slug);
+  const myRole = req.user!.role;
+
+  if (slug !== "kwu_brital" && slug !== "kwu_laundry") {
+    return res.status(400).json({ error: "Unit tidak dikenal." });
+  }
+  // Staf unit yang bersangkutan, atau admin/CS yang memang boleh membantu.
+  if (myRole !== slug && myRole !== "admin" && myRole !== "cs") {
+    return res.status(403).json({ error: "Kamu bukan staf unit ini." });
+  }
+
+  const rows = db
+    .prepare(
+      `SELECT c.*,
+              ub.full_name AS other_name,
+              ub.id AS other_id,
+              ub.profile_photo_url AS other_photo
+       FROM chats c
+       JOIN users ub ON ub.id = c.buyer_id
+       WHERE c.unit_slug = ?
+       ORDER BY COALESCE(c.last_message_at, c.created_at) DESC`
+    )
+    .all(slug) as any[];
+
+  // Lawan bicara bagi staf unit selalu PEMBELI (bukan nama unit).
+  const result = rows.map((r) => ({ ...r, is_unit: false }));
   res.json({ chats: result });
 });
 
@@ -243,51 +309,50 @@ router.post("/notify", authMiddleware, defaultLimiter, validate(notifyChatMessag
     const cleanText = text ? sanitizeText(text) : "";
     const previewText = cleanText || "Mengirim foto";
 
-    // --- Tentukan penerima: untuk WebSocket dan notifikasi push ---
-    // Penerima dihitung lebih dulu supaya satu panggilan kirimPesanChat()
-    // sekaligus menyimpan, menyebar real-time, dan mengirim notifikasi.
+    // ---------------------------------------------------------------------
+    // PENTING: `muted_by_buyer` / `muted_by_seller` adalah setelan SENYAP
+    // (mute) notifikasi push — BUKAN izin menerima pesan real-time.
     //
-    // PENTING: daftar ini menentukan siapa yang menerima pesan lewat
-    // WebSocket (real-time), BUKAN siapa yang boleh menerima notifikasi push.
-    //
-    // JANGAN menyaring dengan `notif_enabled`. Setelan itu hanya untuk notifikasi
-    // push, dan dulu dipakai di sini sehingga pengguna yang mematikan notifikasi
-    // TIDAK PERNAH menerima pesan secara real-time - pesan baru muncul setelah
-    // berpindah halaman atau memuat ulang. Karena hanya satu pihak yang biasanya
-    // mematikan notifikasi, gejalanya muncul sebagai asimetri: satu arah real-time,
-    // arah sebaliknya tidak.
+    // JANGAN memakainya untuk memfilter `penerima`. Kalau dipakai, pengguna
+    // yang mematikan notifikasi tidak akan pernah menerima pesan lewat
+    // WebSocket: pesan baru hanya muncul setelah halaman dimuat ulang.
+    // Karena biasanya hanya SATU pihak yang mematikan notifikasi, gejalanya
+    // terlihat sebagai "realtime jalan satu arah saja" — persis keluhan yang
+    // berulang. Penyaringan mute dilakukan di kirimPesanChat() saat memutuskan
+    // kirim notifikasi push atau tidak, bukan di sini.
+    // ---------------------------------------------------------------------
     const penerima: number[] = [];
     let judulNotif = "Pesan baru";
 
     if (chat.unit_slug) {
       if (chat.buyer_id === req.user!.user_id) {
         // Siswa mengirim ke unit -> beri tahu SEMUA staf unit itu.
-        const staff = db
-          .prepare("SELECT id FROM users WHERE role = ?")
-          .all(chat.unit_slug) as any[];
+        // Tidak disaring `muted_by_seller`: pesan tetap harus sampai
+        // real-time meski staf mematikan notifikasi.
+        const staff = db.prepare("SELECT id FROM users WHERE role = ?").all(chat.unit_slug) as any[];
         const sender = db
           .prepare("SELECT full_name FROM users WHERE id = ?")
           .get(req.user!.user_id) as any;
         judulNotif = `Pesan baru dari ${sender?.full_name || "siswa"}`;
-        if (!chat.muted_by_seller) {
-          for (const s of staff) penerima.push(s.id);
+        for (const s of staff) {
+          // Pengirim tidak perlu menerima pesannya sendiri.
+          if (Number(s.id) !== req.user!.user_id) penerima.push(Number(s.id));
         }
-      } else if (!chat.muted_by_buyer) {
-        // Staf membalas -> beri tahu siswa pembeli saja.
+      } else {
+        // Staf membalas -> beri tahu siswa pembeli.
         judulNotif = `Balasan dari ${UNIT_NAME[chat.unit_slug] || chat.unit_slug}`;
-        const buyer = db
-          .prepare("SELECT id FROM users WHERE id = ?")
-          .get(chat.buyer_id) as any;
-        if (buyer) penerima.push(buyer.id);
+        const buyer = db.prepare("SELECT id FROM users WHERE id = ?").get(chat.buyer_id) as any;
+        if (buyer && Number(buyer.id) !== req.user!.user_id) penerima.push(Number(buyer.id));
       }
     } else {
       const recipientId = chat.buyer_id === req.user!.user_id ? chat.seller_id : chat.buyer_id;
-      const recipientMuted = chat.buyer_id === req.user!.user_id ? chat.muted_by_seller : chat.muted_by_buyer;
       const sender = db
         .prepare("SELECT full_name FROM users WHERE id = ?")
         .get(req.user!.user_id) as any;
       judulNotif = `Pesan baru dari ${sender?.full_name || "pengguna"}`;
-      if (!recipientMuted && recipientId) penerima.push(recipientId);
+      if (recipientId && Number(recipientId) !== req.user!.user_id) {
+        penerima.push(Number(recipientId));
+      }
     }
 
     // Simpan pesan (SQLite), sebarkan real-time (WebSocket), dan kirim

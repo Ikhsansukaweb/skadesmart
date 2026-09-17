@@ -11,9 +11,10 @@ import { urlGambar } from "../utils/urlAman";
  * lama belum tentu termigrasi), tetapi pembuatan produk baru memakai kategori
  * baru. Ini mencegah form lama yang belum diperbarui langsung gagal total.
  */
-export const KATEGORI_PRODUK = ["brital", "laundry", "minuman", "makanan", "jasa"] as const;
+export const KATEGORI_PRODUK = ["brital", "laundry", "minuman", "makanan", "jasa", "barang"] as const;
 const categoryEnum = z.enum(KATEGORI_PRODUK);
-const categoryEnumLama = z.enum(["brital", "laundry", "minuman", "makanan", "jasa", "kwu_brital", "siswa"]);
+
+const categoryEnumLama = z.enum(["brital", "laundry", "minuman", "makanan", "jasa", "barang", "kwu_brital", "siswa"]);
 
 export const createProductSchema = z.object({
   name: z.string().min(3).max(120),
@@ -58,20 +59,11 @@ export const listProductsQuerySchema = z.object({
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean)
-          .every((s) =>
-            (
-              [
-                "brital",
-                "laundry",
-                "minuman",
-                "makanan",
-                "jasa",
-                "kwu_brital",
-                "kwu_laundry",
-                "siswa",
-              ] as string[]
-            ).includes(s),
-          ),
+          // PENTING: pakai KATEGORI_PRODUK, JANGAN tulis ulang daftarnya di
+          // sini. Dulu daftar ini ditulis manual dan terlewat diperbarui saat
+          // kategori "barang" ditambahkan, sehingga filter ?category=barang
+          // ditolak walaupun kategori sudah ada di database.
+          .every((s) => (KATEGORI_PRODUK as readonly string[]).includes(s)),
       { message: "Kategori tidak dikenal." },
     )
     .optional(),

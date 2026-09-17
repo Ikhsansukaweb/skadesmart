@@ -52,9 +52,9 @@ export default function RootPage() {
   // ada (kalau ternyata sudah login, halaman segera dialihkan sehingga
   // tombolnya tidak sempat terlihat).
   return (
-    <main className="bg-paper text-ink">
+    <main className="bg-peran-halaman text-peran-utama">
       {/* Sticky nav publik - beda dari Navbar.tsx yang dipakai user login */}
-      <header className="sticky top-0 z-30 bg-paper/90 backdrop-blur border-b border-sand">
+      <header className="sticky top-0 z-30 bg-peran-kartu/90 backdrop-blur border-b border-peran-garis">
         <div className="max-w-page mx-auto flex items-center justify-between px-4 sm:px-6 py-4">
           <BrandLockup size={32} />
           <Link href="/login" className="btn-secondary !px-5 !py-2.5 text-sm">
@@ -82,12 +82,24 @@ export default function RootPage() {
 
         <div className="relative max-w-page mx-auto px-4 sm:px-6 py-16 sm:py-28">
           <div className="max-w-xl space-y-6">
-            <span className="badge-tagline bg-white text-ink">Marketplace Internal Sekolah</span>
-            <h1 className="text-heading-sm sm:text-heading text-white font-semibold">
+            {/* Badge kecil di atas headline. PENTING: memakai kelas
+                `!text-[#ffffff]` (putih MUTLAK), BUKAN `!text-white`.
+                Sebab `text-white` di proyek ini menunjuk token merek
+                `--teks-terang` (tailwind.config.ts baris 101) yang bisa
+                berubah jadi GELAP - dulu dipakai mode gelap, dan sesudah
+                mode gelap dimatikan tokennya membuat teks di atas foto gelap
+                jadi tak terbaca. Teks di atas FOTO harus selalu putih mutlak. */}
+            <span className="badge-tagline bg-ink/70 !text-[#ffffff] backdrop-blur-sm">Marketplace Internal Sekolah</span>
+            {/* Semua teks di atas FOTO memakai `!text-[#ffffff]` (putih
+                MUTLAK), BUKAN `text-white`. Sebab `text-white` di proyek ini
+                menunjuk token merek `--teks-terang` yang nilainya bisa
+                berubah jadi GELAP (dulu dipakai mode gelap). Akibatnya teks
+                di atas foto jadi hitam dan tidak terbaca. */}
+            <h1 className="text-heading-sm sm:text-heading !text-[#ffffff] font-semibold">
               Satu marketplace untuk semua kebutuhan{" "}
               <span className="font-serif italic font-normal">anak Skadesta</span>
             </h1>
-            <p className="text-body-sm sm:text-body text-white/80 max-w-md">
+            <p className="text-body-sm sm:text-body !text-[#ffffff]/80 max-w-md">
               SkadesMart adalah marketplace internal SMK Negeri 1 Depok Sleman -
               tempat pesan Ayam Geprek Brital, titip cucian ke KWU Laundry, dan
               jualan bebas antar siswa, semua dalam satu aplikasi.
@@ -97,7 +109,7 @@ export default function RootPage() {
                 Masuk ke SkadesMart
               </Link>
             </div>
-            <p className="text-caption text-white/60">SMK Negeri 1 Depok Sleman</p>
+            <p className="text-caption !text-[#ffffff]/60">SMK Negeri 1 Depok Sleman</p>
           </div>
         </div>
       </section>
@@ -105,17 +117,17 @@ export default function RootPage() {
       {/* Feature section - Dark/Colored Section Panel, full-bleed Electric Blue */}
       <section className="bg-electric">
         <div className="max-w-page mx-auto px-4 sm:px-6 py-16 sm:py-20">
-          <h2 className="text-heading-sm text-white font-semibold mb-10 max-w-lg">
+          <h2 className="text-heading-sm !text-[#ffffff] font-semibold mb-10 max-w-lg">
             Kenapa pakai SkadesMart?
           </h2>
           <div className="grid sm:grid-cols-3 gap-5">
             {FEATURES.map(({ icon: Icon, title, body }) => (
               <div key={title} className="card p-6 space-y-3">
-                <div className="w-11 h-11 rounded-badge bg-electric-100 flex items-center justify-center text-electric">
+                <div className="w-11 h-11 rounded-badge bg-peran-aksi-lembut flex items-center justify-center text-peran-aksi">
                   <Icon size={22} aria-hidden="true" />
                 </div>
-                <h3 className="font-sub font-semibold text-ink">{title}</h3>
-                <p className="text-body-sm text-steel">{body}</p>
+                <h3 className="font-sub font-semibold text-peran-utama">{title}</h3>
+                <p className="text-body-sm text-peran-kedua">{body}</p>
               </div>
             ))}
           </div>
@@ -124,26 +136,28 @@ export default function RootPage() {
 
       {/* Stat block - highlight non-angka karena tidak ada data publik tanpa auth */}
       <section className="max-w-page mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-sand">
+        <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-peran-garis">
           <div className="py-4 sm:py-0 sm:px-6 text-center sm:text-left">
-            <p className="text-heading-sm font-semibold text-ink">2 Unit KWU</p>
-            <p className="text-caption text-steel mt-1">Ayam Geprek Brital & Laundry</p>
+            <p className="text-heading-sm font-semibold text-peran-utama">2 Unit KWU</p>
+            <p className="text-caption text-peran-kedua mt-1">Ayam Geprek Brital & Laundry</p>
           </div>
           <div className="py-4 sm:py-0 sm:px-6 text-center sm:text-left">
-            <p className="text-heading-sm font-semibold text-ink">Jualan Bebas</p>
-            <p className="text-caption text-steel mt-1">Terbuka untuk semua siswa</p>
+            <p className="text-heading-sm font-semibold text-peran-utama">Jualan Bebas</p>
+            <p className="text-caption text-peran-kedua mt-1">Terbuka untuk semua siswa</p>
           </div>
           <div className="py-4 sm:py-0 sm:px-6 text-center sm:text-left">
-            <p className="text-heading-sm font-semibold text-ink">Real-time</p>
-            <p className="text-caption text-steel mt-1">Chat & tracking status pesanan</p>
+            <p className="text-heading-sm font-semibold text-peran-utama">Real-time</p>
+            <p className="text-caption text-peran-kedua mt-1">Chat & tracking status pesanan</p>
           </div>
         </div>
       </section>
 
-      {/* CTA penutup */}
-      <section className="bg-ink">
+      {/* CTA penutup - latar HITAM sungguhan, jadi teksnya memakai putih
+          MUTLAK (`!text-[#ffffff]`), bukan `text-peran-terang` atau
+          `text-white` yang mengikuti token tema dan bisa jadi gelap. */}
+      <section className="bg-[#1b1d20]">
         <div className="max-w-page mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center space-y-6">
-          <h2 className="text-heading-sm text-white font-semibold">
+          <h2 className="text-heading-sm !text-[#ffffff] font-semibold">
             Yuk mulai belanja di SkadesMart
           </h2>
           <div className="flex flex-wrap justify-center items-center gap-4">

@@ -58,11 +58,16 @@ import wishlistRoutes from "./routes/wishlist";
 import variantRoutes from "./routes/variants";
 import etalaseRoutes from "./routes/etalase";
 import { jalankanMigrasiV3 } from "./db/migrasiV3";
+import { jalankanMigrasiV4 } from "./db/migrasiV4";
 
 runMigrations();
 // Migrasi v3: ubah products.category ke kategori baru + tambah kolom baru.
 // Aman dijalankan berulang kali (setiap langkah memeriksa dulu).
 jalankanMigrasiV3();
+
+// Migrasi v4: tambah kategori 'barang' pada CHECK constraint products.category.
+// Aman dijalankan berulang kali (berhenti sendiri kalau 'barang' sudah ada).
+jalankanMigrasiV4();
 
 const app = express();
 
@@ -100,7 +105,7 @@ app.use(
         "default-src": ["'self'"],
         "script-src": ["'self'"],
         "style-src": ["'self'"],
-        "img-src": ["'self'", "data:", "https://files.catbox.moe", "blob:"],
+        "img-src": ["'self'", "data:", "https://files.catbox.moe", "https://n.uguu.se", "https://tmpfiles.org", "blob:"],
         "font-src": ["'self'", "data:"],
         // Domain Firebase dihapus - real-time sekarang lewat WebSocket ke
         // server sendiri (wss://api.skadesmart.web.id) dan notifikasi lewat

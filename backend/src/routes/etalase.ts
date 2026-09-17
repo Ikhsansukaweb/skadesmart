@@ -20,7 +20,77 @@ import { urlGambar } from "../utils/urlAman";
 
 const router = Router();
 
-/** Bolehkah pengguna mengatur toko milik sellerId? */
+// ============================================================================
+// PROFIL TOKO
+// (Dideklarasikan SEBELUM route /:id supaya /saya tidak tertangkap sebagai
+// parameter :id.)
+// ============================================================================
+
+// GET /api/toko-profil/saya - profil toko milik sendiri (untuk dashboard).
+router.get("/saya", authMiddleware, readLimiter, (req, res) => {
+  const profil =
+    db.prepare("SELECT * FROM toko_profil WHERE seller_id = ?").get(req.user!.user_id) || null;
+  res.json({ profil });
+});
+
+// PUT /api/toko-profil - simpan profil toko sendiri.
+router.put("/", authMiddleware, defaultLimiter, (req, res) => {
+  const sellerId = req.user!.user_id;
+
+  const namaTokoRaw = req.body?.nama_toko;
+  const deskripsiRaw = req.body?.deskripsi;
+  const fotoRaw = req.body?.foto_url;
+  const jamRaw = req.body?.jam_buka;
+  const lokasiRaw = req.body?.lokasi;
+
+  const nama_toko =
+    namaTokoRaw === undefined || namaTokoRaw === null
+      ? null
+      : sanitizeText(String(namaTokoRaw)).trim().slice(0, 60) || null;
+  const deskripsi =
+    deskripsiRaw === undefined || deskripsiRaw === null
+      ? null
+      : sanitizeText(String(deskripsiRaw)).trim().slice(0, 400) || null;
+  const jam_buka =
+    jamRaw === undefined || jamRaw === null
+      ? null
+      : sanitizeText(String(jamRaw)).trim().slice(0, 40) || null;
+  const lokasi =
+    lokasiRaw === undefined || lokasiRaw === null
+      ? null
+      : sanitizeText(String(lokasiRaw)).trim().slice(0, 60) || null;
+
+  // Foto harus lolos penyaring URL gambar yang sama dengan foto produk,
+  // supaya tidak bisa diisi `javascript:` atau domain luar seenaknya.
+  let foto_url: string | null = null;
+  if (fotoRaw) {
+    const cek = urlGambar.safeParse(String(fotoRaw));
+    if (!cek.success) {
+      return res.status(400).json({
+        error: cek.error.issues[0]?.message || "URL foto tidak diizinkan.",
+      });
+    }
+    foto_url = cek.data;
+  }
+
+  // UPSERT: kalau belum ada barisnya, buat; kalau sudah, perbarui.
+  db.prepare(
+    `INSERT INTO toko_profil (seller_id, nama_toko, deskripsi, foto_url, jam_buka, lokasi, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(seller_id) DO UPDATE SET
+       nama_toko = excluded.nama_toko,
+       deskripsi = excluded.deskripsi,
+       foto_url  = COALESCE(excluded.foto_url, toko_profil.foto_url),
+       jam_buka  = excluded.jam_buka,
+       lokasi    = excluded.lokasi,
+       updated_at = datetime('now')`
+  ).run(sellerId, nama_toko, deskripsi, foto_url, jam_buka, lokasi);
+
+  const profil = db.prepare("SELECT * FROM toko_profil WHERE seller_id = ?").get(sellerId);
+  res.json({ ok: true, profil });
+});
+
+/** Bolehkan pengguna mengatur toko milik sellerId? */
 function bolehAturToko(sellerId: number, user: any): boolean {
   if (user.role === "admin" || user.role === "cs") return true;
   return user.user_id === sellerId;
@@ -178,74 +248,6 @@ router.delete("/:id/produk/:productId", authMiddleware, defaultLimiter, (req, re
     productId
   );
   res.json({ ok: true });
-});
-
-// ============================================================================
-// PROFIL TOKO
-// ============================================================================
-
-// GET /api/toko-profil/saya - profil toko milik sendiri (untuk dashboard).
-router.get("/saya", authMiddleware, readLimiter, (req, res) => {
-  const profil =
-    db.prepare("SELECT * FROM toko_profil WHERE seller_id = ?").get(req.user!.user_id) || null;
-  res.json({ profil });
-});
-
-// PUT /api/toko-profil - simpan profil toko sendiri.
-router.put("/", authMiddleware, defaultLimiter, (req, res) => {
-  const sellerId = req.user!.user_id;
-
-  const namaTokoRaw = req.body?.nama_toko;
-  const deskripsiRaw = req.body?.deskripsi;
-  const fotoRaw = req.body?.foto_url;
-  const jamRaw = req.body?.jam_buka;
-  const lokasiRaw = req.body?.lokasi;
-
-  const nama_toko =
-    namaTokoRaw === undefined || namaTokoRaw === null
-      ? null
-      : sanitizeText(String(namaTokoRaw)).trim().slice(0, 60) || null;
-  const deskripsi =
-    deskripsiRaw === undefined || deskripsiRaw === null
-      ? null
-      : sanitizeText(String(deskripsiRaw)).trim().slice(0, 400) || null;
-  const jam_buka =
-    jamRaw === undefined || jamRaw === null
-      ? null
-      : sanitizeText(String(jamRaw)).trim().slice(0, 40) || null;
-  const lokasi =
-    lokasiRaw === undefined || lokasiRaw === null
-      ? null
-      : sanitizeText(String(lokasiRaw)).trim().slice(0, 60) || null;
-
-  // Foto harus lolos penyaring URL gambar yang sama dengan foto produk,
-  // supaya tidak bisa diisi `javascript:` atau domain luar seenaknya.
-  let foto_url: string | null = null;
-  if (fotoRaw) {
-    const cek = urlGambar.safeParse(String(fotoRaw));
-    if (!cek.success) {
-      return res.status(400).json({
-        error: cek.error.issues[0]?.message || "URL foto tidak diizinkan.",
-      });
-    }
-    foto_url = cek.data;
-  }
-
-  // UPSERT: kalau belum ada barisnya, buat; kalau sudah, perbarui.
-  db.prepare(
-    `INSERT INTO toko_profil (seller_id, nama_toko, deskripsi, foto_url, jam_buka, lokasi, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
-     ON CONFLICT(seller_id) DO UPDATE SET
-       nama_toko = excluded.nama_toko,
-       deskripsi = excluded.deskripsi,
-       foto_url  = COALESCE(excluded.foto_url, toko_profil.foto_url),
-       jam_buka  = excluded.jam_buka,
-       lokasi    = excluded.lokasi,
-       updated_at = datetime('now')`
-  ).run(sellerId, nama_toko, deskripsi, foto_url, jam_buka, lokasi);
-
-  const profil = db.prepare("SELECT * FROM toko_profil WHERE seller_id = ?").get(sellerId);
-  res.json({ ok: true, profil });
 });
 
 export default router;
